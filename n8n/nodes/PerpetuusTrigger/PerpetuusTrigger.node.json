@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-perpetuus.perpetuusTrigger",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Sales"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/perpetuuscrm/perpetuus-integrations/tree/main/n8n#credentials"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/perpetuuscrm/perpetuus-integrations/tree/main/n8n#readme"
+			}
+		]
+	}
+}
