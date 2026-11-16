@@ -1,0 +1,133 @@
+{
+	"name": "Perpetuus: form lead → contact + card",
+	"nodes": [
+		{
+			"parameters": {
+				"content": "## Form lead → Perpetuus\nA public n8n form creates or updates the contact in Perpetuus (matched by email, then phone) and opens a card for it.\n\n**Setup**\n1. Create a Perpetuus API credential (key `ppt_…` with the `crm:write` scope).\n2. In **Create card**, choose the board and fill the required custom fields of the board form.\n3. Activate the workflow and share the form URL.\n\nTo use Typeform or Tally instead, replace the form trigger and keep the field names.",
+				"height": 340,
+				"width": 420
+			},
+			"id": "3f0c6c55-6a4e-4f39-9a7b-1c3a3a8d0a01",
+			"name": "About this template",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [
+				-260,
+				-160
+			]
+		},
+		{
+			"parameters": {
+				"formTitle": "Talk to our team",
+				"formDescription": "Leave your details and we will contact you.",
+				"formFields": {
+					"values": [
+						{
+							"fieldLabel": "Name",
+							"requiredField": true
+						},
+						{
+							"fieldLabel": "Email",
+							"fieldType": "email",
+							"requiredField": true
+						},
+						{
+							"fieldLabel": "Phone"
+						},
+						{
+							"fieldLabel": "Company"
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "3f0c6c55-6a4e-4f39-9a7b-1c3a3a8d0a02",
+			"name": "Lead form",
+			"type": "n8n-nodes-base.formTrigger",
+			"typeVersion": 2.2,
+			"position": [
+				200,
+				0
+			],
+			"webhookId": "6d1b8a2e-0f43-4a8e-9a55-2b7f1c9e4d10"
+		},
+		{
+			"parameters": {
+				"resource": "contact",
+				"operation": "upsert",
+				"email": "={{ $json.Email }}",
+				"phone": "={{ $json.Phone }}",
+				"name": "={{ $json.Name }}",
+				"additionalFields": {}
+			},
+			"id": "3f0c6c55-6a4e-4f39-9a7b-1c3a3a8d0a03",
+			"name": "Create or update contact",
+			"type": "n8n-nodes-perpetuus.perpetuus",
+			"typeVersion": 1,
+			"position": [
+				420,
+				0
+			]
+		},
+		{
+			"parameters": {
+				"resource": "card",
+				"operation": "create",
+				"boardId": {
+					"__rl": true,
+					"mode": "list",
+					"value": ""
+				},
+				"title": "={{ $('Lead form').item.json.Company || $json.name }}",
+				"contactId": {
+					"__rl": true,
+					"mode": "id",
+					"value": "={{ $json.id }}"
+				},
+				"fields": {
+					"mappingMode": "defineBelow",
+					"value": {},
+					"matchingColumns": [],
+					"schema": []
+				},
+				"additionalFields": {}
+			},
+			"id": "3f0c6c55-6a4e-4f39-9a7b-1c3a3a8d0a04",
+			"name": "Create card",
+			"type": "n8n-nodes-perpetuus.perpetuus",
+			"typeVersion": 1,
+			"position": [
+				640,
+				0
+			]
+		}
+	],
+	"connections": {
+		"Lead form": {
+			"main": [
+				[
+					{
+						"node": "Create or update contact",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Create or update contact": {
+			"main": [
+				[
+					{
+						"node": "Create card",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"settings": {
+		"executionOrder": "v1"
+	},
+	"pinData": {}
+}

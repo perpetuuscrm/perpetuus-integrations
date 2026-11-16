@@ -1,0 +1,55 @@
+{
+	"name": "Perpetuus: card won → onboarding task",
+	"nodes": [
+		{
+			"parameters": {
+				"content": "## Won deal → onboarding task\nWhen a card enters the won phase, Perpetuus gets an onboarding task attached to the card, due in 2 days.\n\n**Setup**\n1. Create a Perpetuus API credential (key `ppt_…` with the `crm:write` scope).\n2. In the trigger, choose the board and the phase (for example **Ganho**).\n3. Adjust the task name, priority and due date, then activate.\n\nThe trigger polls Perpetuus; the first poll only marks the starting point.",
+				"height": 320,
+				"width": 420
+			},
+			"id": "7b2d4e10-1c5a-4d2b-8f3e-2a9c4b6d0b01",
+			"name": "About this template",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [-260, -160]
+		},
+		{
+			"parameters": {
+				"pollTimes": { "item": [{ "mode": "everyX", "value": 5, "unit": "minutes" }] },
+				"event": "cardEnteredPhase",
+				"boardId": { "__rl": true, "mode": "list", "value": "" },
+				"phaseId": ""
+			},
+			"id": "7b2d4e10-1c5a-4d2b-8f3e-2a9c4b6d0b02",
+			"name": "Card entered won phase",
+			"type": "n8n-nodes-perpetuus.perpetuusTrigger",
+			"typeVersion": 1,
+			"position": [200, 0]
+		},
+		{
+			"parameters": {
+				"resource": "task",
+				"operation": "create",
+				"name": "=Onboarding: {{ $json.title }}",
+				"boardId": { "__rl": true, "mode": "id", "value": "={{ $json.boardId }}" },
+				"cardId": { "__rl": true, "mode": "id", "value": "={{ $json.id }}" },
+				"additionalFields": {
+					"description": "=Kick off the onboarding of {{ $json.contactName || $json.title }}.",
+					"dueDate": "={{ $now.plus({ days: 2 }).toISO() }}",
+					"priority": "high",
+					"type": "action"
+				}
+			},
+			"id": "7b2d4e10-1c5a-4d2b-8f3e-2a9c4b6d0b03",
+			"name": "Create onboarding task",
+			"type": "n8n-nodes-perpetuus.perpetuus",
+			"typeVersion": 1,
+			"position": [440, 0]
+		}
+	],
+	"connections": {
+		"Card entered won phase": { "main": [[{ "node": "Create onboarding task", "type": "main", "index": 0 }]] }
+	},
+	"settings": { "executionOrder": "v1" },
+	"pinData": {}
+}

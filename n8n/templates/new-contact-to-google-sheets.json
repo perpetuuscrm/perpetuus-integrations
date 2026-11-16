@@ -1,0 +1,61 @@
+{
+	"name": "Perpetuus: new contact → Google Sheets row",
+	"nodes": [
+		{
+			"parameters": {
+				"content": "## New contact → spreadsheet\nEvery contact created in Perpetuus becomes a row in a Google Sheet.\n\n**Setup**\n1. Create a Perpetuus API credential (key `ppt_…`; `crm:read` is enough here).\n2. Create a sheet with the headers: id, name, email, phone, contactType, city, state, createdAt.\n3. In **Append row**, choose the Google credential, the document and the sheet, then activate.",
+				"height": 300,
+				"width": 420
+			},
+			"id": "c41e9a77-2b6f-4e3a-9d1c-5f8a7b3c0c01",
+			"name": "About this template",
+			"type": "n8n-nodes-base.stickyNote",
+			"typeVersion": 1,
+			"position": [-260, -160]
+		},
+		{
+			"parameters": {
+				"pollTimes": { "item": [{ "mode": "everyX", "value": 10, "unit": "minutes" }] },
+				"event": "newContact"
+			},
+			"id": "c41e9a77-2b6f-4e3a-9d1c-5f8a7b3c0c02",
+			"name": "New contact",
+			"type": "n8n-nodes-perpetuus.perpetuusTrigger",
+			"typeVersion": 1,
+			"position": [200, 0]
+		},
+		{
+			"parameters": {
+				"operation": "append",
+				"documentId": { "__rl": true, "mode": "list", "value": "" },
+				"sheetName": { "__rl": true, "mode": "list", "value": "" },
+				"columns": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"id": "={{ $json.id }}",
+						"name": "={{ $json.name }}",
+						"email": "={{ $json.email }}",
+						"phone": "={{ $json.phone }}",
+						"contactType": "={{ $json.contactType }}",
+						"city": "={{ $json.city }}",
+						"state": "={{ $json.state }}",
+						"createdAt": "={{ $json.createdAt }}"
+					},
+					"matchingColumns": [],
+					"schema": []
+				},
+				"options": {}
+			},
+			"id": "c41e9a77-2b6f-4e3a-9d1c-5f8a7b3c0c03",
+			"name": "Append row",
+			"type": "n8n-nodes-base.googleSheets",
+			"typeVersion": 4.5,
+			"position": [440, 0]
+		}
+	],
+	"connections": {
+		"New contact": { "main": [[{ "node": "Append row", "type": "main", "index": 0 }]] }
+	},
+	"settings": { "executionOrder": "v1" },
+	"pinData": {}
+}
