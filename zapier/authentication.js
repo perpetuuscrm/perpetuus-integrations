@@ -27,7 +27,7 @@ module.exports = {
       type: 'password',
       required: true,
       helpText:
-        'Your Perpetuus API key, starting with `ppt_`. In Perpetuus, open **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar editor → Conectar novo editor**, name the key, choose its validity and check the `crm:read` and `crm:write` scopes. The key is shown only once. [Learn more](https://docs.perpetuus.com.br/docs/api/autenticacao).',
+        'Your Perpetuus API key, starting with `ppt_`. In Perpetuus, open **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar editor → Conectar novo editor**, name the key, choose its validity, check the `crm:write` scope (it includes `crm:read`), select **Gerar configuração** and copy the `ppt_` key. It is shown only once. [Learn more](https://docs.perpetuus.com.br/docs/api/autenticacao).',
     },
     {
       key: 'baseUrl',
