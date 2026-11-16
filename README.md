@@ -4,7 +4,7 @@ Official no-code connectors for [Perpetuus CRM](https://perpetuus.com.br).
 
 | Folder | What it is | Status |
 |--------|------------|--------|
-| [`docs/`](docs/) | Shared v1 contract: every trigger, action and search with its REST route, canonical field names, output shape and polling deduplication. All connectors follow it. | v1 |
+| [`docs/`](docs/) | Shared v1 contract: every trigger, action and search with its REST route, canonical field names, output shape and polling deduplication. All connectors follow it. [`docs/STATUS.md`](docs/STATUS.md) tracks what is done and what is left to publish each connector (pt-BR). | v1 |
 | [`n8n/`](n8n/) | `n8n-nodes-perpetuus`, the n8n community node (Perpetuus + Perpetuus Trigger). | v0.1.0 (not published yet) |
 | [`zapier/`](zapier/) | Perpetuus CRM app for Zapier (Platform CLI): 4 polling triggers, 5 actions, 2 searches and Find or Create Contact. | v1.0.0 (not published yet) |
 | `make/` | Make custom app | planned |
