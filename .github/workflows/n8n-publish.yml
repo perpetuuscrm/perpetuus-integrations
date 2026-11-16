@@ -1,0 +1,63 @@
+# Publishes n8n-nodes-perpetuus to npm with a provenance statement when a tag
+# like n8n-v0.1.0 is pushed. n8n requires provenance (GitHub Actions publishing)
+# for verified community nodes since May 1, 2026.
+#
+# One-time setup:
+#   - Create the npm account/organization that will own the package.
+#   - Add the NPM_TOKEN repository secret (npm granular access token with
+#     "Read and write" on n8n-nodes-perpetuus), or configure npm Trusted
+#     Publishing for this repository and workflow file and leave NPM_TOKEN unset.
+#
+# Release:
+#   1. Bump "version" in n8n/package.json and update n8n/CHANGELOG.md.
+#   2. Commit, then: git tag n8n-v<version> && git push origin n8n-v<version>
+
+name: Publish n8n node
+
+on:
+  push:
+    tags:
+      - 'n8n-v*'
+
+permissions:
+  contents: read
+  id-token: write # npm provenance (OIDC)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: n8n
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+          cache-dependency-path: n8n/package-lock.json
+
+      - name: Check that the tag matches package.json
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#n8n-v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION" >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      # Inside GitHub Actions, `n8n-node release` runs lint and build and then
+      # `npm publish` with NPM_CONFIG_PROVENANCE=true.
+      - name: Lint, build and publish with provenance
+        run: npm run release
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

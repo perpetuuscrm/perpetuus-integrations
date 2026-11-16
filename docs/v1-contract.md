@@ -261,7 +261,7 @@ type PollState = {
 |------|-------|
 | Entrada | `boardId` (obrigatório), `phaseId` (opcional; vazio = qualquer fase) |
 | Rota | `GET /boards/{boardId}/cards` |
-| Query | `filters[currentPhaseEnteredAt][$gte]=<cursor>&sort=currentPhaseEnteredAt:asc&pagination[pageSize]=100&stats=false` (+ `filters[currentPhase][documentId][$eq]=<phaseId>`) + populate de card |
+| Query | `filters[currentPhaseEnteredAt][$notNull]=true&filters[currentPhaseEnteredAt][$gte]=<cursor>&sort=currentPhaseEnteredAt:asc&pagination[pageSize]=100&stats=false` (+ `filters[currentPhase][documentId][$eq]=<phaseId>`) + populate de card. O `$notNull` também vale na busca do mais recente: no PostgreSQL, `NULL` vem primeiro em `desc` e cards antigos sem o carimbo apareceriam como "mais recentes". |
 | `eventAt` | `currentPhaseEnteredAt` |
 | `eventId` | `{cardId}:{phaseId}:{currentPhaseEnteredAt}` |
 | Saída | Card + `eventId` + `eventAt` |
@@ -452,7 +452,7 @@ primeiro é usado; Make: módulo search com `limit`). Lista vazia não é erro.
 | Item | Valor |
 |------|-------|
 | Rota | `GET /contacts` |
-| Entrada | `searchBy` (`email` \| `phone` \| `text`, obrigatório), `value` (obrigatório), `limit` (padrão 10, máx. 100; n8n também tem `returnAll`) |
+| Entrada | `searchBy` (`email` \| `phone` \| `text`, obrigatório), `value` (obrigatório), `limit` (padrão 50, máx. 100; o linter do n8n exige 50; n8n também tem `returnAll`) |
 | Escopo | `crm:read` |
 
 | `searchBy` | Query |
@@ -474,7 +474,7 @@ o upsert atualizaria (o mais antigo).
 | Item | Valor |
 |------|-------|
 | Rota | `GET /boards/{boardId}/cards` |
-| Entrada | `boardId` (obrigatório), `query` (texto no título), `phaseId`, `contactId` (todos opcionais), `limit` (padrão 10, máx. 100; n8n também tem `returnAll`) |
+| Entrada | `boardId` (obrigatório), `query` (texto no título), `phaseId`, `contactId` (todos opcionais), `limit` (padrão 50, máx. 100; o linter do n8n exige 50; n8n também tem `returnAll`) |
 | Query | `filters[title][$containsi]=<query>&filters[currentPhase][documentId][$eq]=<phaseId>&filters[contact][documentId][$eq]=<contactId>&sort=updatedAt:desc&stats=false` + populate de card |
 | Saída | Card[] |
 | Escopo | `crm:read` |
