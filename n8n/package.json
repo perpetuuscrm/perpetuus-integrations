@@ -1,0 +1,61 @@
+{
+	"name": "n8n-nodes-perpetuus",
+	"version": "0.1.0",
+	"description": "Official n8n nodes for Perpetuus CRM: contacts, cards, phases, tags and tasks, with polling triggers.",
+	"license": "MIT",
+	"homepage": "https://github.com/perpetuuscrm/perpetuus-integrations/tree/main/n8n#readme",
+	"keywords": [
+		"n8n-community-node-package",
+		"n8n",
+		"perpetuus",
+		"crm"
+	],
+	"author": {
+		"name": "Perpetuus CRM",
+		"email": "contato@perpetuus.com.br",
+		"url": "https://perpetuus.com.br"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/perpetuuscrm/perpetuus-integrations.git",
+		"directory": "n8n"
+	},
+	"bugs": {
+		"url": "https://github.com/perpetuuscrm/perpetuus-integrations/issues"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"test": "vitest run",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"files": [
+		"dist"
+	],
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/PerpetuusApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/Perpetuus/Perpetuus.node.js",
+			"dist/nodes/PerpetuusTrigger/PerpetuusTrigger.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "^0.57.3",
+		"eslint": "9.32.0",
+		"prettier": "3.6.2",
+		"release-it": "^21.1.0",
+		"typescript": "5.9.2",
+		"vitest": "^3.2.4"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
+}
