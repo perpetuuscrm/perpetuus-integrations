@@ -7,7 +7,7 @@ a divergência entra aqui primeiro.
 
 - Versão do contrato: **v1** (2026-11-16)
 - API: Perpetuus REST (Strapi 5), OpenAPI em `perpetuus-docs/public/openapi.json` do monorepo
-- Implementação de referência: [`n8n/`](../n8n/)
+- Implementação de referência: [`n8n/`](../n8n/); Zapier em [`zapier/`](../zapier/)
 
 ## Sumário
 
@@ -103,6 +103,11 @@ Recomendação ao usuário: criar a chave com `crm:write` (que já inclui leitur
 
 No Zapier, o 429 final vira `ThrottledError(retryAfter)`; no Make, `RateLimitError`.
 
+**Ajuste do Zapier:** cada passo do Zapier tem cerca de 30 s de execução, então a espera
+dentro da chamada só acontece com `Retry-After` ≤ **10 s** (ainda no máximo 2 vezes). Acima
+disso, o conector lança `ThrottledError` na hora com o `Retry-After` (60 s quando a API não
+manda) e o próprio Zapier repete o passo depois. O resto da tabela vale igual.
+
 ### 3.3 Mensagens de erro (texto canônico em inglês)
 
 | HTTP | Quando | Mensagem do conector |
@@ -117,6 +122,11 @@ No Zapier, o 429 final vira `ThrottledError(retryAfter)`; no Make, `RateLimitErr
 | 5xx | Erro do servidor | `Perpetuus server error (HTTP N). Try again later.` |
 
 O corpo de erro da API segue `{ data: null, error: { status, name, message, details } }`.
+
+No Zapier o erro não tem campo de descrição: `error.details` (quando existe) é anexado à
+mensagem como ` Details: <json>`, e o `code` do `z.errors.Error` identifica o caso
+(`InvalidData`, `AuthenticationError`, `PlanLimitReached`, `MissingScope`, `Forbidden`,
+`NotFound`, `ServerError`, `InvalidInput` para validação local).
 
 ---
 
@@ -315,10 +325,13 @@ operador só vê as tarefas em que é responsável.
 
 - **n8n**: node `Perpetuus Trigger` (polling, `polling: true`), estado em
   `getWorkflowStaticData('node')`. O intervalo é o "Poll Times" do n8n.
-- **Zapier**: trigger polling com `perform` usando o mesmo filtro e ordem, devolvendo do mais
-  novo para o mais antigo (exigência do Zapier) e com `id = eventId`; a entidade sai em
-  `cardId`/`contactId`/`taskId` além dos campos canônicos. Na primeira chamada sem cursor, usar
-  `sort=<campo>:desc&pageSize=100` (o Zapier deduplica).
+- **Zapier**: trigger polling com `perform` usando os mesmos filtros de base (`$notNull`,
+  fase, board), devolvendo do mais novo para o mais antigo (exigência do Zapier) e com
+  `id = eventId`; a entidade sai em `cardId`/`contactId`/`taskId` além dos campos canônicos e
+  de `eventId`/`eventAt`. O Zapier não guarda cursor para o app, então **toda** chamada usa
+  `sort=<campo>:desc` com 100 itens (tarefas: `limit=100&offset=0`), sem filtro `$gte`, e a
+  deduplicação por `id` fica com a plataforma. Mais de 100 eventos entre dois ciclos: os mais
+  antigos não são vistos.
 - **Make**: módulo trigger "polling" com `trigger: { id: "{{item.eventId}}", date:
   "{{item.eventAt}}", type: "date", order: "asc" }` e `epoch` para escolher o ponto inicial.
 
@@ -393,6 +406,10 @@ criá-lo direto em outra fase. O conector cria e, se `phaseId` for outra fase, m
 `warning` explicando e não repete a criação.
 
 Vincular contato: suportado (`data.contact` = documentId do contato).
+
+No Zapier, os campos do board viram entradas dinâmicas `fields__<slug>` (carregadas da
+estrutura do board escolhido) e há também o dicionário `fields` para boards mapeados de um
+passo anterior; o conector junta os dois em `data.fields`.
 
 ### 6.3 Move Card to Phase (`moveCard`)
 
@@ -482,6 +499,9 @@ o upsert atualizaria (o mais antigo).
 A busca é sempre dentro de um board (não há busca global de cards na API). Para achar o card
 de um contato por e-mail: Find Contact → Find Card com `contactId`.
 
+No Zapier as buscas não expõem `limit`: leem até 50 resultados (o padrão) e o Zapier usa o
+primeiro. Find Contact + Create or Update Contact formam o "Find or Create Contact".
+
 ---
 
 ## 8. Listas dinâmicas (dropdowns)
@@ -497,6 +517,12 @@ de um contato por e-mail: Find Contact → Find Card com `contactId`.
 | Membros do board | `GET /boards/{boardId}/members` | `members[].documentId` / nome ou e-mail |
 
 A estrutura vem em `{ data: { board, phases, tags } }` (ou sem o envelope `data`).
+
+No Zapier cada lista é um trigger oculto (`boardList`, `phaseList`, `tagList`, `memberList`,
+`contactList`, `cardList`) referenciado como `dynamic: '<key>.id.<rótulo>'`. Os dropdowns do
+Zapier não mandam texto de busca, então contatos e cards são listados por `updatedAt:desc`
+com paginação do próprio Zapier (`bundle.meta.page`); para achar um registro específico há os
+campos ligados às buscas (`search: 'findContact.id'` / `'findCard.id'`).
 
 ---
 
