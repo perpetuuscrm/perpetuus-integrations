@@ -1,8 +1,8 @@
 # Status dos conectores
 
-**Atualizado em:** 16/11/2026 · **Contrato:** [v1-contract.md](v1-contract.md)
+**Atualizado em:** 17/11/2026 · **Contrato:** [v1-contract.md](v1-contract.md)
 
-Este documento resume o que já foi feito nos conectores do n8n e do Zapier, o que falta para publicar cada um e os próximos passos. O detalhe técnico de cada operação (rotas, campos, saída, deduplicação, erros) está no contrato.
+Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do Make, o que falta para publicar cada um e os próximos passos. O detalhe técnico de cada operação (rotas, campos, saída, deduplicação, erros) está no contrato.
 
 ## Resumo
 
@@ -10,9 +10,9 @@ Este documento resume o que já foi feito nos conectores do n8n e do Zapier, o q
 |---|---|---|---|---|---|
 | n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.0 | pronto | 53 testes, lint e build ok | não (falta conta npm) |
 | Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | não (falta conta de desenvolvedor) |
-| Make | `make/` | — | não iniciado | — | — |
+| Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | não (falta conta no Make) |
 
-Nenhum dos dois foi testado ainda contra a API real; todos os testes usam HTTP simulado.
+Nenhum dos três foi testado ainda contra a API real: n8n e Zapier usam HTTP simulado e o Make só tem validação estática (IML só roda dentro do Make).
 
 ## O que a API do Perpetuus já oferece aos conectores
 
@@ -25,12 +25,13 @@ Entregue e em produção:
 - **Estrutura do board numa chamada:** `GET /api/boards/:id/structure?include=phases,fields,tags,conditions`, usada nas listas de fases, tags e campos custom.
 - **Chave só de leitura** alcança todas as leituras, inclusive as que usam POST.
 
-## Escopo v1 (igual nos dois conectores)
+## Escopo v1 (igual nos três conectores)
 
 - **Gatilhos (por polling):** New Card, Card Entered Phase, New Contact, Task Completed.
 - **Ações:** Create or Update Contact, Create Card (com campos custom do board), Move Card to Phase, Add Tags to Card, Create Task.
-- **Buscas:** Find Contact, Find Card. No Zapier, também Find or Create Contact.
-- **Listas dinâmicas:** boards, fases, tags, membros (e contatos e cards no Zapier).
+- **Buscas:** Find Contact, Find Card (no Make, Search contacts e Search cards). No Zapier, também Find or Create Contact.
+- **Listas dinâmicas:** boards, fases, tags, membros (e contatos e cards no Zapier e no Make).
+- **Só no Make:** o módulo universal Make an API call, exigido na revisão.
 - **Fora da v1:** enviar WhatsApp ou e-mail, campanhas e qualquer exclusão.
 
 ## n8n
@@ -90,7 +91,40 @@ Limitação: se entrarem mais de 100 eventos entre duas verificações, os mais 
 5. **Conta de teste** `integration-testing@zapier.com` na organização de demonstração, sem expiração e com todos os recursos.
 6. **Beta:** convidar clientes e chegar a 3 usuários com Zaps ativos (checks S001 e S002); então pedir a publicação e responder o D026.
 
-## Limitações conhecidas (valem para os dois)
+## Make
+
+### Feito
+
+- Custom app em [`make/app/`](../make/app/) no formato de *local development* da extensão Make Apps Editor (VS Code): `makecomapp.json` e um arquivo por código de componente (`*.communication.iml.json`, `*.mappable-params.iml.json`, `*.interface.iml.json`…), pronto para "Deploy to Make" num app vazio. O mesmo conjunto de arquivos serve para o upload pelo SDK `@makehq/sdk`, que o Make passou a recomendar (o README tem o mapeamento de seções).
+- Base com URL vinda da conexão (padrão de produção), `Authorization: Bearer`, sanitização do header nos logs e mensagens do contrato para 400, 401, 402, 403 (com o escopo que falta), 404, 429 e 5xx. O 429 é `RateLimitError`; 5xx em escrita é `RuntimeError` para não duplicar.
+- Conexão por chave de API (campo senha) e base URL opcional, validada em `/auth/token-info`, com rótulo "Organização (e-mail)".
+- 4 gatilhos por polling (Watch new cards, Watch cards entering a phase, Watch new contacts, Watch completed tasks) com `limit`, epoch "Choose where to start", ordem decrescente e filtro pelo carimbo que o Make guarda.
+- 5 ações (Create or update a contact, Create a card, Move a card to a phase, Add tags to a card, Create a task), 2 buscas paginadas com `limit` (Search contacts, Search cards) e o módulo universal Make an API call.
+- 7 RPCs: boards, fases, tags, membros, cards e contatos (até 300 itens, paginados) e os campos custom do board como campos dinâmicos em Create a card.
+- Interfaces tipadas com os nomes do contrato, amostras com dados fictícios, labels e ajuda em inglês no padrão do Make. Sem funções IML custom (o deploy delas pode ser bloqueado para desenvolvedores externos).
+- Validação local em [`make/scripts/validate.mjs`](../make/scripts/validate.mjs): JSON, referências, regras da revisão do Make, nomes de campos lidos do contrato, expressões IML, segredos e os schemas oficiais do editor (copiados em [`make/schemas/`](../make/schemas/)). CI em `.github/workflows/make-ci.yml`.
+- Cenários de teste passo a passo em [`make/docs/test-scenarios.md`](../make/docs/test-scenarios.md), cobrindo todos os módulos, paginação e um cenário de erro.
+
+### Como os gatilhos deduplicam
+
+O próprio Make guarda a data e o ID do último item. Cada execução lê do mais novo para o mais antigo com `$gte` a partir dessa data e o Make descarta o que já devolveu, usando o `trigger.id` (= `eventId` do contrato):
+
+- Watch new cards: `cardId`; Watch new contacts: `contactId`.
+- Watch cards entering a phase: `cardId:phaseId:currentPhaseEnteredAt` (voltar à mesma fase dispara de novo).
+- Watch completed tasks: `taskId:completedAt`.
+
+Acima do `limit`, o restante sai nas execuções seguintes.
+
+### Falta para publicar
+
+1. **Conta no Make** (organização da Perpetuus) e um token da API do Make com `sdk-apps:read` e `sdk-apps:write`.
+2. **Criar o app vazio** (nome `perpetuus-crm`, rótulo "Perpetuus CRM", cor e logo PNG 512×512) e fazer o deploy de `make/app` pela extensão (ou pelo SDK). Preencher a origem em `makecomapp.json` (zona, `appId`, versão 1, arquivo da chave em `.secrets/`) e commitar o `idMapping` gerado.
+3. **Testar contra a API real** com a organização de demonstração: conexão, cada RPC no editor e os cenários de `make/docs/test-scenarios.md`. Pontos a conferir: expressões IML que não rodam fora do Make (`toCollection`/`toArray` dos campos custom, regex do telefone, filtro `data.lastDate`), formato das opções dos campos select e o `value` decimal.
+4. **Rodar os cenários no mesmo dia** do pedido de revisão, sem dados pessoais nos logs, e apagar módulos ou conexões de teste (a publicação não pode ser desfeita).
+5. **Publicar** o app, deixar os módulos visíveis e enviar o formulário de revisão com o link da documentação da API e dos cenários.
+6. **Technology Partner** (opcional, depois da aprovação): pedido ao programa de parceiros do Make, com contato de parceria e de suporte.
+
+## Limitações conhecidas (valem para os três)
 
 Detalhadas, com o contorno usado e a proposta para a API, em [v1-contract.md §9](v1-contract.md). As principais:
 
@@ -106,16 +140,16 @@ Detalhadas, com o contorno usado e a proposta para a API, em [v1-contract.md §9
 
 ## Próximos passos
 
-1. **Testar n8n e Zapier contra a API real** com uma chave de teste (`crm:read` e `crm:write`) de uma organização de demonstração.
-2. **Make:** custom app seguindo o mesmo contrato (módulos, RPCs para listas, módulo universal, paginação, cenário de teste cobrindo todos os módulos).
+1. **Testar n8n, Zapier e Make contra a API real** com uma chave de teste (`crm:read` e `crm:write`) de uma organização de demonstração.
+2. **Make:** criar a conta, fazer o deploy de `make/app`, rodar os cenários de teste e pedir a revisão.
 3. **Webhooks de saída na API:** inscrição por API, entrega assinada (HMAC), retry e log. Torna os gatilhos instantâneos no Zapier, Make e n8n e é obrigatório para a Pluga.
 4. **OAuth 2.1 na API:** login "Conectar" sem colar chave no Zapier e no Make, e pré-requisito para Pipedream, ChatGPT e o diretório do Claude.
 5. **Pipedream** (pedido ao programa App Partners, depende do OAuth), **Activepieces** (piece enviado como PR ao repositório deles) e **Pluga** (depende dos webhooks).
 
 ## Pendências que dependem do time
 
-- Criar as contas: npm (organização), Zapier (desenvolvedor) e, depois, Make e n8n Creator Portal.
+- Criar as contas: npm (organização), Zapier (desenvolvedor), Make (organização com acesso a custom apps) e n8n Creator Portal.
 - Confirmar o e-mail de autor e contato dos pacotes.
-- Logo PNG 256×256 para o Zapier e as demais listagens.
+- Logo PNG 256×256 para o Zapier e 512×512 para o Make e as demais listagens.
 - Organização de demonstração com dados fictícios e usuário de revisão sem autenticação em dois fatores.
 - Chave de teste para validar os conectores contra a API real.
