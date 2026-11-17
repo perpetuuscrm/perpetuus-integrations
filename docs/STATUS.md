@@ -9,7 +9,7 @@ Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do 
 | Conector | Pasta | Versão | Código | Testes | Publicado |
 |---|---|---|---|---|---|
 | n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.2 | pronto | 53 testes, lint e build ok | **sim, npm com provenance**; verificação: revisão automática ok, manual aguardando vídeo |
-| Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | não (conta criada; falta `register` e `push`) |
+| Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | **app privado no Zapier** (id 249970, versão 1.0.0 enviada); falta testar e pedir revisão |
 | Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | não (conta criada; falta criar o app e o deploy) |
 
 Nenhum dos três foi testado ainda contra a API real: n8n e Zapier usam HTTP simulado e o Make só tem validação estática (IML só roda dentro do Make).
@@ -104,8 +104,8 @@ Limitação: se entrarem mais de 100 eventos entre duas verificações, os mais 
 
 ### Falta para publicar
 
-1. **Conta de desenvolvedor no Zapier**, com pelo menos um admin de e-mail do domínio `@perpetuus.com.br`.
-2. **Cadastrar e enviar o app:** `npx zapier-platform login`, `register "Perpetuus CRM"` (gera o `.zapierapprc`, que deve ser commitado) e `push`.
+1. ~~Conta de desenvolvedor no Zapier~~ (feita com `luis.santos@perpetuus.com.br`; trial Pro até 01/12/2026).
+2. ~~Cadastrar e enviar o app~~ (feito em 17/11/2026): registrado como **Perpetuus CRM**, privado, categoria CRM, id `249970` (`zapier/.zapierapprc` commitado), e a versão 1.0.0 enviada com `push` (build e validação ok).
 3. **Listagem no painel do Zapier:** categoria, descrição começando com "Perpetuus CRM is a…", homepage e logo PNG quadrado de 256×256 (ainda não existe).
 4. **Testar cada operação num Zap ligado** com pelo menos uma execução bem-sucedida (contra a API real).
 5. **Conta de teste** `integration-testing@zapier.com` na organização de demonstração, sem expiração e com todos os recursos.
