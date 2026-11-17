@@ -184,7 +184,7 @@ Achados em aberto:
 3. **A automação "Criar contato" do template troca o contato do card.** Criando o card com `contactId` de um contato e `fields.email` de outro, a automação cria um contato novo a partir de `fields.email` e o vincula ao card, logo depois da criação (assíncrona). Na 2ª rodada isso aconteceu antes da busca por contato do n8n, que então não achou o card pelo contato original. Quando `fields.email` é o e-mail do próprio contato (Zapier e Make), o contato é mantido. Não é bug de conector; proposta: a automação respeitar um `contact` já informado, ou documentar que o e-mail do card prevalece.
 4. Sem chave nenhuma a API responde 403, não 401; com chave inválida responde 401 (mapeado certo nos três).
 
-Resolvidos desde a 1ª rodada: o 500 em `/structure` para `phases`, `fields` e `tags` (backend `edf07214`) e os filtros opcionais vazios do Make (`8adfadb`: `ifempty(..., undefined)` em Search Cards, Watch Cards Entered Phase e Watch Completed Tasks). A mudança do Make ainda não foi enviada ao app privado (versão 1 no Make é a anterior).
+Resolvidos desde a 1ª rodada: o 500 em `/structure` para `phases`, `fields` e `tags` (backend `edf07214`) e os filtros opcionais vazios do Make (`8adfadb`: `ifempty(..., undefined)` em Search Cards, Watch Cards Entered Phase e Watch Completed Tasks). A mudança do Make foi enviada ao app privado em 17/11/2026 (versão 1, us2: seção `api` de Search Cards, Watch Cards Entered Phase e Watch Completed Tasks, conferida pela API do Make).
 
 ## Limitações conhecidas (valem para os três)
 
