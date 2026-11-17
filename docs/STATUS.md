@@ -8,9 +8,9 @@ Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do 
 
 | Conector | Pasta | Versão | Código | Testes | Publicado |
 |---|---|---|---|---|---|
-| n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.0 | pronto | 53 testes, lint e build ok | não (falta conta npm) |
-| Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | não (falta conta de desenvolvedor) |
-| Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | não (falta conta no Make) |
+| n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.2 | pronto | 53 testes, lint e build ok | **sim, npm com provenance**; verificação: revisão automática ok, manual aguardando vídeo |
+| Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | não (conta criada; falta `register` e `push`) |
+| Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | não (conta criada; falta criar o app e o deploy) |
 
 Nenhum dos três foi testado ainda contra a API real: n8n e Zapier usam HTTP simulado e o Make só tem validação estática (IML só roda dentro do Make).
 
@@ -46,14 +46,34 @@ Entregue e em produção:
 - Ícones claro e escuro, 3 templates de workflow em [`n8n/templates/`](../n8n/templates/), README e CHANGELOG.
 - CI (`.github/workflows/n8n-ci.yml`: lint, testes, build) e publicação com provenance por tag `n8n-v*` (`n8n-publish.yml`, usa o secret `NPM_TOKEN`).
 
-### Falta para publicar
+### Publicação e verificação (17/11/2026)
 
-1. **Testar contra a API real** com uma chave de uma organização de teste, inclusive `npm run dev` (precisa de Docker ou Podman). Pontos a conferir: filtros dos gatilhos em `currentPhaseEnteredAt` e `completedAt`, e o formato de `/boards/:id/structure` e da lista de membros.
-2. **Conta no npm:** criar a organização dona do pacote, confirmar que o nome `n8n-nodes-perpetuus` está livre e configurar no GitHub o secret `NPM_TOKEN` (ou Trusted Publishing do npm).
-3. **Confirmar o e-mail de autor** do `package.json` (hoje `contato@perpetuus.com.br`); precisa bater com o da conta npm.
-4. **Primeira publicação:** criar a tag `n8n-v0.1.0` e deixar o workflow publicar.
-5. **Scanner do n8n:** `npx @n8n/scan-community-package n8n-nodes-perpetuus` (só roda com o pacote já publicado).
-6. **Verificação:** enviar o pacote no Creator Portal do n8n, com README e templates.
+- **Publicado no npm:** [`n8n-nodes-perpetuus`](https://www.npmjs.com/package/n8n-nodes-perpetuus), `latest` = **0.1.2**, com provenance SLSA assinada pelo GitHub Actions (tag `n8n-v0.1.2`). Conta npm `perpetuuscrm` (2FA ligado), organização `perpetuus`.
+- **Repositório público:** o npm só aceita provenance de repositório público, então `perpetuuscrm/perpetuus-integrations` passou a ser público.
+- **Histórico de versões:**
+  - 0.1.0 nunca foi publicada (faltava `publishConfig.access: public`).
+  - 0.1.1 foi a primeira publicação.
+  - 0.1.2 trocou o e-mail de autor para `luis.santos@perpetuus.com.br`, porque o Creator Portal manda o token de posse para o e-mail de autor e `contato@` não recebia.
+  - Existe ainda uma versão `0.0.0-stage`, publicada pelo próprio `n8n-node release` no mesmo run da 0.1.1. Pendente marcar como deprecated.
+- **Creator Portal** (usuário `perpetuus`): pacote submetido.
+  - Revisão automática: **COMPLETE** ("Your node has passed the automated review process").
+  - Revisão manual: **AWAITING VIDEO**.
+
+### Falta para a verificação
+
+1. **Testar contra a API real** com uma chave `ppt_` (`crm:read` e `crm:write`) de uma organização de demonstração com dados fictícios. Ainda não foi feito; os testes atuais usam HTTP simulado. Pontos a conferir:
+   - os filtros dos gatilhos em `currentPhaseEnteredAt` e `completedAt`;
+   - o formato de `/boards/:id/structure` e da lista de membros.
+2. **Vídeo para a revisão manual:** até 5 minutos, sem cortes, gravado no Loom ou similar. Precisa mostrar:
+   1. a instalação da versão submetida pelo npm numa instância n8n;
+   2. o node inserido num workflow;
+   3. a criação da credencial com o teste passando;
+   4. as ações mais comuns;
+   5. o node como ferramenta de um AI Agent (`usableAsTool: true` já está no código).
+
+   Depois, enviar o link no portal e clicar em "Submit for review".
+3. **Trusted Publishing no npm:** ligar o pacote ao workflow `n8n-publish.yml` e então apagar o secret `NPM_TOKEN`. O npm avisou que tokens que pulam o 2FA estão sendo restringidos.
+4. **Creator verificado:** o portal pede mais 3 templates de workflow publicados.
 
 Observação: o `@n8n/node-cli` pede Node 24; localmente funciona no 22 com aviso, e o CI usa o 24.
 
@@ -148,8 +168,9 @@ Detalhadas, com o contorno usado e a proposta para a API, em [v1-contract.md §9
 
 ## Pendências que dependem do time
 
-- Criar as contas: npm (organização), Zapier (desenvolvedor), Make (organização com acesso a custom apps) e n8n Creator Portal.
-- Confirmar o e-mail de autor e contato dos pacotes.
+- ~~Criar as contas: npm, Zapier, Make e n8n Creator Portal~~ (feito em 17/11/2026, com `luis.santos@perpetuus.com.br`).
+- ~~Confirmar o e-mail de autor~~ (n8n usa `luis.santos@perpetuus.com.br` desde a 0.1.2).
+- Gravar o vídeo da revisão manual do n8n.
 - Logo PNG 256×256 para o Zapier e 512×512 para o Make e as demais listagens.
 - Organização de demonstração com dados fictícios e usuário de revisão sem autenticação em dois fatores.
 - Chave de teste para validar os conectores contra a API real.
