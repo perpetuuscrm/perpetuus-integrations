@@ -12,7 +12,7 @@ Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do 
 | Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | **app privado no Zapier** (id 249970, versão 1.0.0 enviada); falta testar e pedir revisão |
 | Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | **app privado no Make** (`perpetuus-crm-ej2gdv`, versão 1, criado e enviado em 17/11/2026, zona us2); não foi testado contra a API real nem publicado |
 
-Nenhum dos três foi testado ainda contra a API real: n8n e Zapier usam HTTP simulado e o Make só tem validação estática (IML só roda dentro do Make).
+Os três foram testados contra a API real em 17/11/2026 na org demo (`perpetuus-demo`): todas as ações, buscas e gatilhos passaram. Falham as listas que dependem de `GET /boards/{id}/structure`, que devolve 500 em produção (bug do backend). Detalhes em [Testes contra a API real](#testes-contra-a-api-real-17112026).
 
 ## O que a API do Perpetuus já oferece aos conectores
 
@@ -144,6 +144,46 @@ Acima do `limit`, o restante sai nas execuções seguintes.
 4. **Rodar os cenários no mesmo dia** do pedido de revisão, sem dados pessoais nos logs, e apagar módulos ou conexões de teste (a publicação não pode ser desfeita).
 5. **Publicar** o app, deixar os módulos visíveis e enviar o formulário de revisão com o link da documentação da API e dos cenários.
 6. **Technology Partner** (opcional, depois da aprovação): pedido ao programa de parceiros do Make, com contato de parceria e de suporte.
+
+## Testes contra a API real (17/11/2026)
+
+Org demo `perpetuus-demo` (plano DOMINION), chave `ppt_` com `crm:read` e `crm:write`, base `https://api.perpetuus.com.br/api`. A org estava vazia, então o teste criou um board próprio ("TESTE conector - board", template padrão `pre-vendas-sdr`) e duas tags. Todos os registros levaram o prefixo "TESTE conector" e foram apagados no fim.
+
+Como cada conector foi exercitado:
+
+- **n8n:** a lógica do node (`dist/nodes/Perpetuus/shared`: montagem de URL, query Strapi, retry e mapeamento de erro) com um `Sender` HTTP real no lugar do `httpRequestWithAuthentication` do n8n. A casca do n8n (`Perpetuus.node.ts`, leitura de parâmetros) não rodou; isso fica para o vídeo de revisão.
+- **Zapier:** `zapier-platform-core` `createAppTester` local com a chave real (sem push).
+- **Make:** as requisições dos arquivos `.communication.iml.json` reproduzidas uma a uma (mesma URL, query e corpo). O IML em si só roda dentro do Make.
+
+| Operação | n8n | Zapier | Make |
+|---|---|---|---|
+| Teste de conexão (`/auth/token-info`) | ok | ok (rótulo "Perpetuus Demo (demo@perpetuus.com.br)") | ok |
+| Upsert de contato: cria (201) e atualiza pelo e-mail (200, mesmo id) | ok | ok | ok |
+| Buscar contato por e-mail, telefone e texto | ok | ok | ok |
+| Criar card (contato, tag, fase, valor, campos obrigatórios da fase de formulário) | ok | ok (inputs `fields__<slug>`) | ok |
+| Buscar card por título, fase e contato | ok | ok | ok |
+| Mover card de fase (com motivo) | ok | ok | ok |
+| Adicionar tags (mescla com as existentes) | ok | ok | ok |
+| Criar tarefa (no card e só no board) | ok | ok | ok |
+| Gatilho New Card | ok | ok | ok |
+| Gatilho Card Entered Phase | ok | ok | ok |
+| Gatilho New Contact | ok | ok | ok |
+| Gatilho Task Completed | ok | ok | ok |
+| Make an API Call | não existe | não existe | ok |
+| Listas de boards, membros, contatos e cards | ok | ok | ok |
+| Listas de fases, tags e campos do card (`/boards/{id}/structure`) | **falha 500** | **falha 500** | **falha 500** |
+| Erros 400, 401 e 404 com a mensagem do contrato | ok | ok | não testado (só roda no Make) |
+
+No n8n, os gatilhos foram testados em três ciclos: o primeiro só grava o cursor, o segundo emite o item novo e o terceiro não emite nada (deduplicação).
+
+Não testado: 403 por falta de escopo (a chave tem `crm:write`), 429 e webhooks (os gatilhos são por polling; a API não tem webhooks).
+
+Achados:
+
+1. **Backend: `GET /boards/{id}/structure` devolve 500** ("Falha ao montar a estrutura do board") em qualquer board e com qualquer `include`, inclusive num board vazio. Acontece na REST e no MCP (`crm_get_board_structure`). Isso quebra os dropdowns de fase e tag e os campos dinâmicos do card nos três conectores. Sem esses campos, no Zapier o usuário não vê os campos obrigatórios da fase de formulário (dá para contornar mapeando o dicionário `fields`). Código em `perpetuus-back/src/services/board/board-structure.ts`; a causa está no log `[board.structure]` do servidor.
+2. **Template padrão cria a automação "Criar contato"** quando o board nasce. Ela cria ou reaproveita um contato a partir de `fields.email`/`fields.whatsapp` do card e troca o contato vinculado. Se o card for criado com `contactId` de um contato e `fields.email` de outro, o card acaba ligado ao segundo. Além disso, todo contato criado é sincronizado com o Chatwoot da org.
+3. **Make: filtro vazio zera a busca.** `filters[currentPhase][documentId][$eq]=` vazio devolve 0 cards. Se o Make mandar string vazia quando o campo opcional chega vazio de um módulo anterior, Search Cards não encontra nada. Proposta: `{{ifempty(parameters.phaseId, undefined)}}` nos filtros opcionais de `search-cards` (e `watch-*`).
+4. Sem chave nenhuma a API responde 403, não 401; com chave inválida responde 401 (mapeado certo nos três).
 
 ## Limitações conhecidas (valem para os três)
 
