@@ -12,7 +12,7 @@ Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do 
 | Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | **app privado no Zapier** (id 249970, versão 1.0.0 enviada); falta testar e pedir revisão |
 | Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | **app privado no Make** (`perpetuus-crm-ej2gdv`, versão 1, criado e enviado em 17/11/2026, zona us2); não foi testado contra a API real nem publicado |
 
-Os três foram testados contra a API real em 17/11/2026 na org demo (`perpetuus-demo`): todas as ações, buscas e gatilhos passaram. Falham as listas que dependem de `GET /boards/{id}/structure`, que devolve 500 em produção (bug do backend). Detalhes em [Testes contra a API real](#testes-contra-a-api-real-17112026).
+Os três foram testados contra a API real em 17/11/2026 na org demo (`perpetuus-demo`), em duas rodadas: ações, buscas, gatilhos e as listas de fases e campos passam. A lista de tags volta vazia (bug do backend em `/structure?include=tags`). Detalhes em [Testes contra a API real](#testes-contra-a-api-real-17112026).
 
 ## O que a API do Perpetuus já oferece aos conectores
 
@@ -147,7 +147,9 @@ Acima do `limit`, o restante sai nas execuções seguintes.
 
 ## Testes contra a API real (17/11/2026)
 
-Org demo `perpetuus-demo` (plano DOMINION), chave `ppt_` com `crm:read` e `crm:write`, base `https://api.perpetuus.com.br/api`. A org estava vazia, então o teste criou um board próprio ("TESTE conector - board", template padrão `pre-vendas-sdr`) e duas tags. Todos os registros levaram o prefixo "TESTE conector" e foram apagados no fim.
+Org demo `perpetuus-demo` (plano DOMINION), chave `ppt_` com `crm:read` e `crm:write`, base `https://api.perpetuus.com.br/api`. A org estava vazia, então cada rodada criou um board próprio ("TESTE conector - board", template padrão `pre-vendas-sdr`) e duas tags. Todos os registros levaram o prefixo "TESTE conector" e foram apagados no fim (a org ficou sem boards, contatos, tarefas e automações).
+
+Duas rodadas: a 1ª às 16:50, a 2ª às 17:35 (horário de Brasília), depois do deploy da correção do `/structure` (backend `edf07214`) e da mudança `8adfadb` nos filtros do Make.
 
 Como cada conector foi exercitado:
 
@@ -155,35 +157,34 @@ Como cada conector foi exercitado:
 - **Zapier:** `zapier-platform-core` `createAppTester` local com a chave real (sem push).
 - **Make:** as requisições dos arquivos `.communication.iml.json` reproduzidas uma a uma (mesma URL, query e corpo). O IML em si só roda dentro do Make.
 
+Resultado da 2ª rodada:
+
 | Operação | n8n | Zapier | Make |
 |---|---|---|---|
-| Teste de conexão (`/auth/token-info`) | ok | ok (rótulo "Perpetuus Demo (demo@perpetuus.com.br)") | ok |
-| Upsert de contato: cria (201) e atualiza pelo e-mail (200, mesmo id) | ok | ok | ok |
+| Teste de conexão (`/auth/token-info`) | ok | ok | ok |
+| Upsert de contato (cria e atualiza pelo e-mail, mesmo id) | ok | ok | ok |
 | Buscar contato por e-mail, telefone e texto | ok | ok | ok |
-| Criar card (contato, tag, fase, valor, campos obrigatórios da fase de formulário) | ok | ok (inputs `fields__<slug>`) | ok |
-| Buscar card por título, fase e contato | ok | ok | ok |
-| Mover card de fase (com motivo) | ok | ok | ok |
-| Adicionar tags (mescla com as existentes) | ok | ok | ok |
-| Criar tarefa (no card e só no board) | ok | ok | ok |
-| Gatilho New Card | ok | ok | ok |
-| Gatilho Card Entered Phase | ok | ok | ok |
-| Gatilho New Contact | ok | ok | ok |
-| Gatilho Task Completed | ok | ok | ok |
-| Make an API Call | não existe | não existe | ok |
-| Listas de boards, membros, contatos e cards | ok | ok | ok |
-| Listas de fases, tags e campos do card (`/boards/{id}/structure`) | **falha 500** | **falha 500** | **falha 500** |
-| Erros 400, 401 e 404 com a mensagem do contrato | ok | ok | não testado (só roda no Make) |
+| Criar card (contato, tag, valor, campos obrigatórios da fase de formulário) | ok | ok | ok |
+| Buscar card por título e fase | ok | ok | ok |
+| Buscar card por contato | falhou nesta rodada (ver achado 3) | ok | ok |
+| Mover card, adicionar tags, criar tarefa | ok | ok | ok |
+| Gatilhos New Card, Card Entered Phase, New Contact, Task Completed | ok | ok | ok |
+| Listas de boards, membros, contatos, cards | ok | ok | ok |
+| Lista de fases (`/structure?include=phases`) | ok (12 fases, form marcada) | ok | ok |
+| Campos do card (`include=phases,fields`) | ok (obrigatórios: email, faturamento, whatsapp) | ok (`fields__*`, mesmos obrigatórios) | ok (16 slugs) |
+| Lista de tags (`include=tags`) | **vazia** | **vazia** | **vazia** |
+| Erros 400, 401, 404 com a mensagem do contrato | ok (1ª rodada) | ok (1ª rodada) | não testado (só roda no Make) |
 
-No n8n, os gatilhos foram testados em três ciclos: o primeiro só grava o cursor, o segundo emite o item novo e o terceiro não emite nada (deduplicação).
+Não testado: 403 por falta de escopo, 429 e webhooks (os gatilhos são por polling; a API não tem webhooks).
 
-Não testado: 403 por falta de escopo (a chave tem `crm:write`), 429 e webhooks (os gatilhos são por polling; a API não tem webhooks).
+Achados em aberto:
 
-Achados:
-
-1. **Backend: `GET /boards/{id}/structure` devolve 500** ("Falha ao montar a estrutura do board") em qualquer board e com qualquer `include`, inclusive num board vazio. Acontece na REST e no MCP (`crm_get_board_structure`). Isso quebra os dropdowns de fase e tag e os campos dinâmicos do card nos três conectores. Sem esses campos, no Zapier o usuário não vê os campos obrigatórios da fase de formulário (dá para contornar mapeando o dicionário `fields`). Código em `perpetuus-back/src/services/board/board-structure.ts`; a causa está no log `[board.structure]` do servidor.
-2. **Template padrão cria a automação "Criar contato"** quando o board nasce. Ela cria ou reaproveita um contato a partir de `fields.email`/`fields.whatsapp` do card e troca o contato vinculado. Se o card for criado com `contactId` de um contato e `fields.email` de outro, o card acaba ligado ao segundo. Além disso, todo contato criado é sincronizado com o Chatwoot da org.
-3. **Make: filtro vazio zera a busca.** `filters[currentPhase][documentId][$eq]=` vazio devolve 0 cards. Se o Make mandar string vazia quando o campo opcional chega vazio de um módulo anterior, Search Cards não encontra nada. Proposta: `{{ifempty(parameters.phaseId, undefined)}}` nos filtros opcionais de `search-cards` (e `watch-*`).
+1. **Backend: `include=tags` devolve `tags: []`** mesmo com o board tendo 7 tags (5 do template + 2 de teste), que aparecem em `GET /boards/{id}/tags`. Os dropdowns de tag ficam vazios nos três conectores (dá para mapear o id da tag). O `/boards/{id}/tags` busca pelo lado da tag (`strapi.documents('api::tag.tag').findMany({ filters: { board: { documentId } } })`); proposta: usar a mesma consulta em `perpetuus-back/src/services/board/board-structure.ts` em vez de `populate.tags`.
+2. **Backend: `include=conditions` ainda dá 500.** O trecho das condicionais em `board-structure.ts` ainda usa `populate: { phase: { fields: ['documentId'] } }`, o mesmo formato que causava o 500 antes. Proposta: `populate: { phase: true }`. Nenhum conector usa `conditions`; só afeta o MCP e a API.
+3. **A automação "Criar contato" do template troca o contato do card.** Criando o card com `contactId` de um contato e `fields.email` de outro, a automação cria um contato novo a partir de `fields.email` e o vincula ao card, logo depois da criação (assíncrona). Na 2ª rodada isso aconteceu antes da busca por contato do n8n, que então não achou o card pelo contato original. Quando `fields.email` é o e-mail do próprio contato (Zapier e Make), o contato é mantido. Não é bug de conector; proposta: a automação respeitar um `contact` já informado, ou documentar que o e-mail do card prevalece.
 4. Sem chave nenhuma a API responde 403, não 401; com chave inválida responde 401 (mapeado certo nos três).
+
+Resolvidos desde a 1ª rodada: o 500 em `/structure` para `phases`, `fields` e `tags` (backend `edf07214`) e os filtros opcionais vazios do Make (`8adfadb`: `ifempty(..., undefined)` em Search Cards, Watch Cards Entered Phase e Watch Completed Tasks). A mudança do Make ainda não foi enviada ao app privado (versão 1 no Make é a anterior).
 
 ## Limitações conhecidas (valem para os três)
 
