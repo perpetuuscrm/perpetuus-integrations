@@ -10,7 +10,7 @@ Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do 
 |---|---|---|---|---|---|
 | n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.2 | pronto | 53 testes, lint e build ok | **sim, npm com provenance**; verificação: revisão automática ok, manual aguardando vídeo |
 | Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | **app privado no Zapier** (id 249970, versão 1.0.0 enviada); falta testar e pedir revisão |
-| Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | não (conta criada; falta criar o app e o deploy) |
+| Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | **app privado no Make** (`perpetuus-crm-ej2gdv`, versão 1, criado e enviado em 17/11/2026, zona us2); não foi testado contra a API real nem publicado |
 
 Nenhum dos três foi testado ainda contra a API real: n8n e Zapier usam HTTP simulado e o Make só tem validação estática (IML só roda dentro do Make).
 
@@ -124,6 +124,7 @@ Limitação: se entrarem mais de 100 eventos entre duas verificações, os mais 
 - Interfaces tipadas com os nomes do contrato, amostras com dados fictícios, labels e ajuda em inglês no padrão do Make. Sem funções IML custom (o deploy delas pode ser bloqueado para desenvolvedores externos).
 - Validação local em [`make/scripts/validate.mjs`](../make/scripts/validate.mjs): JSON, referências, regras da revisão do Make, nomes de campos lidos do contrato, expressões IML, segredos e os schemas oficiais do editor (copiados em [`make/schemas/`](../make/schemas/)). CI em `.github/workflows/make-ci.yml`.
 - Cenários de teste passo a passo em [`make/docs/test-scenarios.md`](../make/docs/test-scenarios.md), cobrindo todos os módulos, paginação e um cenário de erro.
+- App privado **Perpetuus CRM** criado e enviado em 17/11/2026 na zona us2 (`perpetuus-crm-ej2gdv`, versão 1), com base, conexão, 7 RPCs, 12 módulos, grupos e documentação. O Make atribuiu o nome `perpetuus-crm-ej2gdv` (o pedido era `perpetuus-crm`). Origem e `idMapping` estão em [`make/app/makecomapp.json`](../make/app/makecomapp.json). O app não foi publicado.
 
 ### Como os gatilhos deduplicam
 
@@ -137,8 +138,8 @@ Acima do `limit`, o restante sai nas execuções seguintes.
 
 ### Falta para publicar
 
-1. **Conta no Make** (organização da Perpetuus) e um token da API do Make com `sdk-apps:read` e `sdk-apps:write`.
-2. **Criar o app vazio** (nome `perpetuus-crm`, rótulo "Perpetuus CRM", cor e logo PNG 512×512) e fazer o deploy de `make/app` pela extensão (ou pelo SDK). Preencher a origem em `makecomapp.json` (zona, `appId`, versão 1, arquivo da chave em `.secrets/`) e commitar o `idMapping` gerado.
+1. ~~**Conta no Make** (organização da Perpetuus) e um token da API do Make com `sdk-apps:read` e `sdk-apps:write`.~~ (feito em 17/11/2026, com `luis.santos@perpetuus.com.br`).
+2. ~~**Criar o app e fazer o deploy de `make/app`.**~~ Feito em 17/11/2026: o app privado **Perpetuus CRM** (`perpetuus-crm-ej2gdv`, versão 1, zona us2.make.com) foi criado e o código foi enviado (base, conexão, 7 RPCs, 12 módulos, grupos e documentação). A origem e o `idMapping` estão em `makecomapp.json`. O Make atribuiu o nome `perpetuus-crm-ej2gdv` (o pedido era `perpetuus-crm`). Sem logo ainda (PNG 512×512). O app não foi testado contra a API real nem publicado.
 3. **Testar contra a API real** com a organização de demonstração: conexão, cada RPC no editor e os cenários de `make/docs/test-scenarios.md`. Pontos a conferir: expressões IML que não rodam fora do Make (`toCollection`/`toArray` dos campos custom, regex do telefone, filtro `data.lastDate`), formato das opções dos campos select e o `value` decimal.
 4. **Rodar os cenários no mesmo dia** do pedido de revisão, sem dados pessoais nos logs, e apagar módulos ou conexões de teste (a publicação não pode ser desfeita).
 5. **Publicar** o app, deixar os módulos visíveis e enviar o formulário de revisão com o link da documentação da API e dos cenários.
@@ -161,7 +162,7 @@ Detalhadas, com o contorno usado e a proposta para a API, em [v1-contract.md §9
 ## Próximos passos
 
 1. **Testar n8n, Zapier e Make contra a API real** com uma chave de teste (`crm:read` e `crm:write`) de uma organização de demonstração.
-2. **Make:** criar a conta, fazer o deploy de `make/app`, rodar os cenários de teste e pedir a revisão.
+2. **Make:** testar contra a API real, rodar os cenários de `make/docs/test-scenarios.md` e pedir a revisão (o app privado `perpetuus-crm-ej2gdv` já foi criado e enviado em 17/11/2026; ainda falta o logo 512×512).
 3. **Webhooks de saída na API:** inscrição por API, entrega assinada (HMAC), retry e log. Torna os gatilhos instantâneos no Zapier, Make e n8n e é obrigatório para a Pluga.
 4. **OAuth 2.1 na API:** login "Conectar" sem colar chave no Zapier e no Make, e pré-requisito para Pipedream, ChatGPT e o diretório do Claude.
 5. **Pipedream** (pedido ao programa App Partners, depende do OAuth), **Activepieces** (piece enviado como PR ao repositório deles) e **Pluga** (depende dos webhooks).
