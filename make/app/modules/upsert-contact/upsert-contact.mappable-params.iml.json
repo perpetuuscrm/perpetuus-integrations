@@ -1,0 +1,108 @@
+[
+    {
+        "name": "email",
+        "type": "email",
+        "label": "Email",
+        "help": "Provide at least one of Email or Phone. Used to find an existing contact."
+    },
+    {
+        "name": "phone",
+        "type": "text",
+        "label": "Phone",
+        "help": "Provide at least one of Email or Phone. Any Brazilian format is accepted, for example `(11) 99999-0000`; Perpetuus stores it as `+5511999990000`."
+    },
+    {
+        "name": "name",
+        "type": "text",
+        "label": "Name",
+        "help": "Required when a new contact is created."
+    },
+    {
+        "name": "matchBy",
+        "type": "select",
+        "label": "Match by",
+        "multiple": true,
+        "options": [
+            {
+                "label": "Email",
+                "value": "email"
+            },
+            {
+                "label": "Phone",
+                "value": "phone"
+            }
+        ],
+        "help": "Fields used to find an existing contact, in this order. Leave empty to match by email and then by phone."
+    },
+    {
+        "name": "contactType",
+        "type": "select",
+        "label": "Contact type",
+        "options": [
+            {
+                "label": "Person",
+                "value": "person"
+            },
+            {
+                "label": "Company",
+                "value": "company"
+            }
+        ]
+    },
+    {
+        "name": "cpf",
+        "type": "text",
+        "label": "CPF",
+        "help": "Brazilian individual taxpayer ID. Perpetuus rejects invalid numbers."
+    },
+    {
+        "name": "cnpj",
+        "type": "text",
+        "label": "CNPJ",
+        "help": "Brazilian company taxpayer ID. Perpetuus rejects invalid numbers."
+    },
+    {
+        "name": "address",
+        "type": "text",
+        "label": "Address"
+    },
+    {
+        "name": "city",
+        "type": "text",
+        "label": "City"
+    },
+    {
+        "name": "state",
+        "type": "text",
+        "label": "State"
+    },
+    {
+        "name": "country",
+        "type": "text",
+        "label": "Country"
+    },
+    {
+        "name": "postalCode",
+        "type": "text",
+        "label": "Postal code"
+    },
+    {
+        "name": "customFields",
+        "type": "array",
+        "label": "Custom fields",
+        "spec": [
+            {
+                "name": "key",
+                "type": "text",
+                "label": "Key",
+                "required": true
+            },
+            {
+                "name": "value",
+                "type": "text",
+                "label": "Value"
+            }
+        ],
+        "help": "Contact custom fields as key and value pairs, for example key `origem` and value `Website`."
+    }
+]

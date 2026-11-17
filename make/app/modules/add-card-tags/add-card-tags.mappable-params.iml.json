@@ -1,0 +1,28 @@
+[
+    {
+        "name": "boardId",
+        "type": "select",
+        "label": "Board",
+        "required": true,
+        "options": "rpc://listBoards",
+        "help": "The Perpetuus board (pipeline). The list shows up to 300 boards; map a board ID to use any other."
+    },
+    {
+        "name": "cardId",
+        "type": "select",
+        "label": "Card ID",
+        "required": true,
+        "options": "rpc://listCards",
+        "mode": "edit",
+        "help": "The card to change. Map the card ID from a previous module, or switch off Map to pick one of the 300 most recently updated cards of the selected board."
+    },
+    {
+        "name": "tagIds",
+        "type": "select",
+        "label": "Tags",
+        "multiple": true,
+        "options": "rpc://listTags",
+        "help": "Tags to add. Tags already on the card are kept. When mapping, tag IDs or tag slugs are accepted.",
+        "required": true
+    }
+]

@@ -1,0 +1,41 @@
+[
+    {
+        "name": "searchBy",
+        "type": "select",
+        "label": "Search by",
+        "required": true,
+        "default": "email",
+        "options": [
+            {
+                "label": "Email (exact, case-insensitive)",
+                "value": "email"
+            },
+            {
+                "label": "Phone (digits contained in the stored phone)",
+                "value": "phone"
+            },
+            {
+                "label": "Text (name, email, phone, CPF or CNPJ)",
+                "value": "text"
+            }
+        ],
+        "help": "Email and phone return the oldest match first, the same contact Create or update a contact would update. Text returns the most recently updated first."
+    },
+    {
+        "name": "value",
+        "type": "text",
+        "label": "Value",
+        "required": true,
+        "help": "The email, phone or text to search for. For phone, include the area code, for example `11 99999-0000`."
+    },
+    {
+        "name": "limit",
+        "type": "uinteger",
+        "label": "Limit",
+        "default": 10,
+        "validate": {
+            "max": 100
+        },
+        "help": "Maximum number of contacts to return, up to 100. Leave it empty to return up to 100."
+    }
+]

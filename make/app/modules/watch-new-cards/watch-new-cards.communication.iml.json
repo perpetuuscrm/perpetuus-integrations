@@ -1,0 +1,52 @@
+{
+    "url": "/boards/{{parameters.boardId}}/cards",
+    "method": "GET",
+    "qs": {
+        "filters[createdAt][$gte]": "{{formatDate(ifempty(data.lastDate, '1970-01-01T00:00:00.000Z'), 'YYYY-MM-DDTHH:mm:ss.SSS[Z]', 'UTC')}}",
+        "sort": "createdAt:desc",
+        "stats": "false",
+        "pagination[pageSize]": 100,
+        "populate[contact]": "true",
+        "populate[currentPhase]": "true",
+        "populate[tags]": "true",
+        "populate[fieldData][populate][0]": "field"
+    },
+    "response": {
+        "limit": "{{parameters.limit}}",
+        "iterate": "{{body.data}}",
+        "output": {
+            "id": "{{item.documentId}}",
+            "title": "{{item.title}}",
+            "boardId": "{{ifempty(item.board.documentId, parameters.boardId)}}",
+            "phaseId": "{{item.currentPhase.documentId}}",
+            "phaseName": "{{item.currentPhase.name}}",
+            "phaseEnteredAt": "{{item.currentPhaseEnteredAt}}",
+            "contactId": "{{item.contact.documentId}}",
+            "contactName": "{{item.contact.name}}",
+            "contactEmail": "{{item.contact.email}}",
+            "contactPhone": "{{item.contact.phone}}",
+            "value": "{{if(ifempty(item.value, '') == '', null, item.value * 1)}}",
+            "dueDate": "{{item.dueDate}}",
+            "description": "{{item.description}}",
+            "tagIds": "{{map(item.tags, 'documentId')}}",
+            "tagNames": "{{map(item.tags, 'name')}}",
+            "fields": "{{item.fields}}",
+            "createdAt": "{{item.createdAt}}",
+            "updatedAt": "{{item.updatedAt}}",
+            "eventId": "{{item.documentId}}",
+            "eventAt": "{{item.createdAt}}"
+        },
+        "trigger": {
+            "type": "date",
+            "order": "desc",
+            "id": "{{item.documentId}}",
+            "date": "{{item.createdAt}}"
+        }
+    },
+    "pagination": {
+        "qs": {
+            "pagination[page]": "{{pagination.page}}"
+        },
+        "condition": "{{body.meta.pagination.page < body.meta.pagination.pageCount}}"
+    }
+}

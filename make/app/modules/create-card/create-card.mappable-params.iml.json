@@ -1,0 +1,90 @@
+[
+    {
+        "name": "boardId",
+        "type": "select",
+        "label": "Board",
+        "required": true,
+        "options": {
+            "store": "rpc://listBoards",
+            "nested": [
+                "rpc://listCardFields"
+            ]
+        },
+        "help": "The board of the card. After you choose it, its custom fields appear below; fields required by the form phase are marked as required."
+    },
+    {
+        "name": "title",
+        "type": "text",
+        "label": "Title",
+        "required": true,
+        "help": "Card title (the `name` field of the board)."
+    },
+    {
+        "name": "phaseId",
+        "type": "select",
+        "label": "Phase",
+        "options": "rpc://listPhases",
+        "help": "Phase to place the card in. Leave empty to keep the first phase. Perpetuus always creates cards in the first phase, so a different phase means a second request that moves the card."
+    },
+    {
+        "name": "contactId",
+        "type": "select",
+        "label": "Contact ID",
+        "options": "rpc://listContacts",
+        "mode": "edit",
+        "help": "Contact linked to the card. Map a contact ID, for example from Create or update a contact."
+    },
+    {
+        "name": "tagIds",
+        "type": "select",
+        "label": "Tags",
+        "multiple": true,
+        "options": "rpc://listTags",
+        "help": "Tags of the selected board. When mapping, tag IDs or tag slugs are accepted."
+    },
+    {
+        "name": "value",
+        "type": "number",
+        "label": "Value",
+        "help": "Deal value, for example `1500.50`."
+    },
+    {
+        "name": "dueDate",
+        "type": "date",
+        "label": "Due date",
+        "help": "Date and time of the deadline."
+    },
+    {
+        "name": "description",
+        "type": "text",
+        "label": "Description"
+    },
+    {
+        "name": "assigneeIds",
+        "type": "select",
+        "label": "Assignees",
+        "multiple": true,
+        "options": "rpc://listMembers",
+        "help": "Board members responsible for it. Choose the board first."
+    },
+    {
+        "name": "fields",
+        "type": "array",
+        "label": "Other custom fields",
+        "advanced": true,
+        "spec": [
+            {
+                "name": "key",
+                "type": "text",
+                "label": "Field slug",
+                "required": true
+            },
+            {
+                "name": "value",
+                "type": "any",
+                "label": "Value"
+            }
+        ],
+        "help": "Custom fields as slug and value pairs. Use it when the board is mapped from a previous module, so the fields above cannot load. Values here override the fields above."
+    }
+]

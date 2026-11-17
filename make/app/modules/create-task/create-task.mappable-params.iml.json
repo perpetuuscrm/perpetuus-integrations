@@ -1,0 +1,97 @@
+[
+    {
+        "name": "name",
+        "type": "text",
+        "label": "Name",
+        "required": true
+    },
+    {
+        "name": "boardId",
+        "type": "select",
+        "label": "Board",
+        "required": false,
+        "options": "rpc://listBoards",
+        "help": "Board of the task. Provide a board or a card; when a card is given, its board is used."
+    },
+    {
+        "name": "cardId",
+        "type": "select",
+        "label": "Card ID",
+        "required": false,
+        "options": "rpc://listCards",
+        "mode": "edit",
+        "help": "Card of the task. Provide a board or a card. Map the card ID from a previous module, or switch off Map to pick a recent card of the selected board."
+    },
+    {
+        "name": "description",
+        "type": "text",
+        "label": "Description"
+    },
+    {
+        "name": "dueDate",
+        "type": "date",
+        "label": "Due date"
+    },
+    {
+        "name": "type",
+        "type": "select",
+        "label": "Type",
+        "default": "follow-up",
+        "options": [
+            {
+                "label": "Reminder",
+                "value": "reminder"
+            },
+            {
+                "label": "Follow-up",
+                "value": "follow-up"
+            },
+            {
+                "label": "Action",
+                "value": "action"
+            },
+            {
+                "label": "Other",
+                "value": "other"
+            }
+        ]
+    },
+    {
+        "name": "priority",
+        "type": "select",
+        "label": "Priority",
+        "default": "medium",
+        "options": [
+            {
+                "label": "Low",
+                "value": "low"
+            },
+            {
+                "label": "Medium",
+                "value": "medium"
+            },
+            {
+                "label": "High",
+                "value": "high"
+            },
+            {
+                "label": "Urgent",
+                "value": "urgent"
+            }
+        ]
+    },
+    {
+        "name": "status",
+        "type": "text",
+        "label": "Status",
+        "help": "A task status configured on the board. Leave empty to use the first status of the board."
+    },
+    {
+        "name": "assigneeIds",
+        "type": "select",
+        "label": "Assignees",
+        "multiple": true,
+        "options": "rpc://listMembers",
+        "help": "Board members responsible for the task. Leave empty to assign the API key owner. Choose the board first."
+    }
+]

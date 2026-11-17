@@ -1,0 +1,9 @@
+{
+    "response": {
+        "limit": 300,
+        "output": {
+            "label": "{{item.name}}",
+            "date": "{{item.completedAt}}"
+        }
+    }
+}

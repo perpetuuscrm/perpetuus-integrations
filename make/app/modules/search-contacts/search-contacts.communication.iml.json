@@ -1,0 +1,41 @@
+{
+    "temp": {
+        "digits": "{{replace(ifempty(parameters.value, ''), /\\D+/g, '')}}"
+    },
+    "condition": "{{parameters.searchBy != 'phone' || length(temp.digits) > 0}}",
+    "url": "/contacts",
+    "method": "GET",
+    "qs": {
+        "filters[email][$eqi]": "{{if(parameters.searchBy == 'email', trim(parameters.value), undefined)}}",
+        "quickSearch": "{{switch(parameters.searchBy, 'phone', if(length(temp.digits) >= 12 && substring(temp.digits, 0, 2) == '55', substring(temp.digits, 2, length(temp.digits)), temp.digits), 'text', parameters.value)}}",
+        "sort": "{{if(parameters.searchBy == 'text', 'updatedAt:desc', 'createdAt:asc')}}",
+        "pagination[pageSize]": 100
+    },
+    "response": {
+        "limit": "{{ifempty(parameters.limit, 100)}}",
+        "iterate": "{{body.data}}",
+        "output": {
+            "id": "{{item.documentId}}",
+            "name": "{{item.name}}",
+            "email": "{{item.email}}",
+            "phone": "{{item.phone}}",
+            "contactType": "{{switch(item.contact_type, 'pessoa', 'person', 'empresa', 'company')}}",
+            "cpf": "{{item.cpf}}",
+            "cnpj": "{{item.cnpj}}",
+            "address": "{{item.address}}",
+            "city": "{{item.city}}",
+            "state": "{{item.state}}",
+            "country": "{{item.country}}",
+            "postalCode": "{{item.postal_code}}",
+            "customFields": "{{item.customFields}}",
+            "createdAt": "{{item.createdAt}}",
+            "updatedAt": "{{item.updatedAt}}"
+        }
+    },
+    "pagination": {
+        "qs": {
+            "pagination[page]": "{{pagination.page}}"
+        },
+        "condition": "{{body.meta.pagination.page < body.meta.pagination.pageCount}}"
+    }
+}

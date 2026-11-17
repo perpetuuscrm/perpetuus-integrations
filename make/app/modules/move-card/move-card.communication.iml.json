@@ -1,0 +1,65 @@
+[
+    {
+        "url": "/boards/{{parameters.boardId}}/cards/{{parameters.cardId}}",
+        "method": "PUT",
+        "body": {
+            "data": {
+                "currentPhase": "{{parameters.phaseId}}",
+                "reason": "{{parameters.reason}}"
+            }
+        },
+        "response": {
+            "error": {
+                "message": "[{{statusCode}}] {{if(statusCode >= 500, 'Perpetuus server error (HTTP ' + statusCode + '). Try again later.', 'Perpetuus request failed (HTTP ' + statusCode + '): ' + ifempty(ifempty(body.error.message, body.message), 'unknown error'))}}",
+                "500": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                },
+                "502": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                },
+                "503": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                },
+                "504": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                }
+            }
+        }
+    },
+    {
+        "url": "/boards/{{parameters.boardId}}/cards/{{parameters.cardId}}",
+        "method": "GET",
+        "qs": {
+            "populate[contact]": "true",
+            "populate[currentPhase]": "true",
+            "populate[tags]": "true",
+            "populate[fieldData][populate][0]": "field"
+        },
+        "response": {
+            "output": {
+                "id": "{{body.documentId}}",
+                "title": "{{body.title}}",
+                "boardId": "{{ifempty(body.board.documentId, parameters.boardId)}}",
+                "phaseId": "{{body.currentPhase.documentId}}",
+                "phaseName": "{{body.currentPhase.name}}",
+                "phaseEnteredAt": "{{body.currentPhaseEnteredAt}}",
+                "contactId": "{{body.contact.documentId}}",
+                "contactName": "{{body.contact.name}}",
+                "contactEmail": "{{body.contact.email}}",
+                "contactPhone": "{{body.contact.phone}}",
+                "value": "{{if(ifempty(body.value, '') == '', null, body.value * 1)}}",
+                "dueDate": "{{body.dueDate}}",
+                "description": "{{body.description}}",
+                "tagIds": "{{map(body.tags, 'documentId')}}",
+                "tagNames": "{{map(body.tags, 'name')}}",
+                "fields": "{{body.fields}}",
+                "createdAt": "{{body.createdAt}}",
+                "updatedAt": "{{body.updatedAt}}"
+            }
+        }
+    }
+]

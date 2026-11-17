@@ -1,0 +1,44 @@
+{
+    "url": "/contacts",
+    "method": "GET",
+    "qs": {
+        "filters[createdAt][$gte]": "{{formatDate(ifempty(data.lastDate, '1970-01-01T00:00:00.000Z'), 'YYYY-MM-DDTHH:mm:ss.SSS[Z]', 'UTC')}}",
+        "sort": "createdAt:desc",
+        "pagination[pageSize]": 100
+    },
+    "response": {
+        "limit": "{{parameters.limit}}",
+        "iterate": "{{body.data}}",
+        "output": {
+            "id": "{{item.documentId}}",
+            "name": "{{item.name}}",
+            "email": "{{item.email}}",
+            "phone": "{{item.phone}}",
+            "contactType": "{{switch(item.contact_type, 'pessoa', 'person', 'empresa', 'company')}}",
+            "cpf": "{{item.cpf}}",
+            "cnpj": "{{item.cnpj}}",
+            "address": "{{item.address}}",
+            "city": "{{item.city}}",
+            "state": "{{item.state}}",
+            "country": "{{item.country}}",
+            "postalCode": "{{item.postal_code}}",
+            "customFields": "{{item.customFields}}",
+            "createdAt": "{{item.createdAt}}",
+            "updatedAt": "{{item.updatedAt}}",
+            "eventId": "{{item.documentId}}",
+            "eventAt": "{{item.createdAt}}"
+        },
+        "trigger": {
+            "type": "date",
+            "order": "desc",
+            "id": "{{item.documentId}}",
+            "date": "{{item.createdAt}}"
+        }
+    },
+    "pagination": {
+        "qs": {
+            "pagination[page]": "{{pagination.page}}"
+        },
+        "condition": "{{body.meta.pagination.page < body.meta.pagination.pageCount}}"
+    }
+}

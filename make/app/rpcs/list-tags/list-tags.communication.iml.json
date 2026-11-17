@@ -1,0 +1,15 @@
+{
+    "url": "/boards/{{parameters.boardId}}/structure",
+    "method": "GET",
+    "qs": {
+        "include": "tags"
+    },
+    "response": {
+        "iterate": "{{ifempty(body.data.tags, body.tags)}}",
+        "limit": 300,
+        "output": {
+            "label": "{{ifempty(item.name, item.slug)}}",
+            "value": "{{item.documentId}}"
+        }
+    }
+}

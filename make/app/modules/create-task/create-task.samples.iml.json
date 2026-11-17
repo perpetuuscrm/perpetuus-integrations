@@ -1,0 +1,17 @@
+{
+    "id": "tk2w4e6r8t0y1u3i5o7p9a",
+    "name": "Send the proposal",
+    "description": "Email the signed proposal to the client.",
+    "type": "follow-up",
+    "priority": "high",
+    "status": "Done",
+    "dueDate": "2026-11-17T15:00:00.000Z",
+    "completedAt": "2026-11-16T14:00:00.000Z",
+    "cardId": "cd3f8a1b6c9d2e7f4a0b5c",
+    "cardTitle": "Maria Silva - Website",
+    "assigneeIds": [
+        "mb6y5t4r3e2w1q0p9o8i7u"
+    ],
+    "createdAt": "2026-11-16T12:50:00.000Z",
+    "updatedAt": "2026-11-16T14:00:00.000Z"
+}

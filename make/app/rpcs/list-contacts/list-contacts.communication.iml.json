@@ -1,0 +1,22 @@
+{
+    "url": "/contacts",
+    "method": "GET",
+    "qs": {
+        "sort": "updatedAt:desc",
+        "pagination[pageSize]": 100
+    },
+    "response": {
+        "iterate": "{{body.data}}",
+        "limit": 300,
+        "output": {
+            "label": "{{item.name}}{{if(item.email, ' (' + item.email + ')', '')}}",
+            "value": "{{item.documentId}}"
+        }
+    },
+    "pagination": {
+        "qs": {
+            "pagination[page]": "{{pagination.page}}"
+        },
+        "condition": "{{body.meta.pagination.page < body.meta.pagination.pageCount}}"
+    }
+}

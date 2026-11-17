@@ -1,0 +1,22 @@
+{
+    "url": "/boards",
+    "method": "GET",
+    "qs": {
+        "sort": "name:asc",
+        "pagination[pageSize]": 100
+    },
+    "response": {
+        "iterate": "{{body.data}}",
+        "limit": 300,
+        "output": {
+            "label": "{{item.name}}",
+            "value": "{{item.documentId}}"
+        }
+    },
+    "pagination": {
+        "qs": {
+            "pagination[page]": "{{pagination.page}}"
+        },
+        "condition": "{{body.meta.pagination.page < body.meta.pagination.pageCount}}"
+    }
+}

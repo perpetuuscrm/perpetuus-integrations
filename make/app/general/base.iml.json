@@ -1,0 +1,37 @@
+{
+    "baseUrl": "{{ifempty(connection.baseUrl, 'https://api.perpetuus.com.br/api')}}",
+    "headers": {
+        "Authorization": "Bearer {{connection.apiKey}}"
+    },
+    "response": {
+        "error": {
+            "400": {
+                "type": "DataError",
+                "message": "[400] Perpetuus rejected the request: {{ifempty(ifempty(body.error.message, body.message), 'invalid data')}}{{if(body.error.details && createJSON(body.error.details) != '{}', ' Details: ' + createJSON(body.error.details), '')}}"
+            },
+            "401": {
+                "type": "InvalidAccessTokenError",
+                "message": "[401] Invalid or expired Perpetuus API key. Create a new key in Settings → API Tokens e MCP and update the connection."
+            },
+            "402": {
+                "message": "[402] Your Perpetuus plan contact limit was reached: {{ifempty(ifempty(body.error.message, body.message), 'upgrade the plan to add more contacts')}}"
+            },
+            "403": {
+                "message": "[403] {{if(body.error.details.requiredScope || contains(ifempty(body.error.message, ''), 'escopo'), 'The Perpetuus API key is missing the \"' + ifempty(body.error.details.requiredScope, last(split(trim(body.error.message), ' '))) + '\" scope. Create a key with the crm:write scope (it includes crm:read).', 'Perpetuus denied access: ' + ifempty(ifempty(body.error.message, body.message), 'forbidden'))}}"
+            },
+            "404": {
+                "message": "[404] Not found in Perpetuus: {{ifempty(ifempty(body.error.message, body.message), 'resource not found')}}"
+            },
+            "429": {
+                "type": "RateLimitError",
+                "message": "[429] Perpetuus rate limit reached (120 requests/min per key). Try again in {{ifempty(headers.`retry-after`, ifempty(body.error.details.retryAfter, 60))}} seconds."
+            },
+            "message": "[{{statusCode}}] {{if(statusCode >= 500, 'Perpetuus server error (HTTP ' + statusCode + '). Try again later.', 'Perpetuus request failed (HTTP ' + statusCode + '): ' + ifempty(ifempty(body.error.message, body.message), 'unknown error'))}}"
+        }
+    },
+    "log": {
+        "sanitize": [
+            "request.headers.authorization"
+        ]
+    }
+}

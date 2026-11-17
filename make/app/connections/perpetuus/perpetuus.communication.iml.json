@@ -1,0 +1,31 @@
+{
+    "url": "{{ifempty(parameters.baseUrl, 'https://api.perpetuus.com.br/api')}}/auth/token-info",
+    "method": "GET",
+    "headers": {
+        "Authorization": "Bearer {{parameters.apiKey}}"
+    },
+    "response": {
+        "valid": {
+            "condition": "{{body.data.organization.documentId}}",
+            "message": "Perpetuus did not return the organization of this API key. Check the API base URL."
+        },
+        "error": {
+            "401": {
+                "message": "[401] Invalid or expired Perpetuus API key. Create a new key in Settings → API Tokens e MCP and try again."
+            },
+            "429": {
+                "message": "[429] Perpetuus rate limit reached (120 requests/min per key). Try again in {{ifempty(headers.`retry-after`, 60)}} seconds."
+            },
+            "message": "[{{statusCode}}] Could not validate the Perpetuus API key: {{ifempty(ifempty(body.error.message, body.message), 'unknown error')}}"
+        },
+        "metadata": {
+            "type": "text",
+            "value": "{{body.data.organization.name}} ({{body.data.user.email}})"
+        }
+    },
+    "log": {
+        "sanitize": [
+            "request.headers.authorization"
+        ]
+    }
+}

@@ -1,0 +1,18 @@
+[
+    {
+        "name": "boardId",
+        "type": "select",
+        "label": "Board",
+        "required": true,
+        "options": "rpc://listBoards",
+        "help": "The Perpetuus board (pipeline). The list shows up to 300 boards; map a board ID to use any other."
+    },
+    {
+        "name": "limit",
+        "type": "uinteger",
+        "label": "Limit",
+        "required": true,
+        "default": 10,
+        "help": "Maximum number of cards Make returns during one execution cycle."
+    }
+]

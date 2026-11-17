@@ -1,0 +1,46 @@
+{
+    "url": "/boards/{{parameters.boardId}}/cards",
+    "method": "GET",
+    "qs": {
+        "filters[title][$containsi]": "{{parameters.query}}",
+        "filters[currentPhase][documentId][$eq]": "{{parameters.phaseId}}",
+        "filters[contact][documentId][$eq]": "{{parameters.contactId}}",
+        "sort": "updatedAt:desc",
+        "stats": "false",
+        "pagination[pageSize]": 100,
+        "populate[contact]": "true",
+        "populate[currentPhase]": "true",
+        "populate[tags]": "true",
+        "populate[fieldData][populate][0]": "field"
+    },
+    "response": {
+        "limit": "{{ifempty(parameters.limit, 100)}}",
+        "iterate": "{{body.data}}",
+        "output": {
+            "id": "{{item.documentId}}",
+            "title": "{{item.title}}",
+            "boardId": "{{ifempty(item.board.documentId, parameters.boardId)}}",
+            "phaseId": "{{item.currentPhase.documentId}}",
+            "phaseName": "{{item.currentPhase.name}}",
+            "phaseEnteredAt": "{{item.currentPhaseEnteredAt}}",
+            "contactId": "{{item.contact.documentId}}",
+            "contactName": "{{item.contact.name}}",
+            "contactEmail": "{{item.contact.email}}",
+            "contactPhone": "{{item.contact.phone}}",
+            "value": "{{if(ifempty(item.value, '') == '', null, item.value * 1)}}",
+            "dueDate": "{{item.dueDate}}",
+            "description": "{{item.description}}",
+            "tagIds": "{{map(item.tags, 'documentId')}}",
+            "tagNames": "{{map(item.tags, 'name')}}",
+            "fields": "{{item.fields}}",
+            "createdAt": "{{item.createdAt}}",
+            "updatedAt": "{{item.updatedAt}}"
+        }
+    },
+    "pagination": {
+        "qs": {
+            "pagination[page]": "{{pagination.page}}"
+        },
+        "condition": "{{body.meta.pagination.page < body.meta.pagination.pageCount}}"
+    }
+}

@@ -1,0 +1,88 @@
+[
+    {
+        "name": "id",
+        "label": "Contact ID",
+        "type": "text"
+    },
+    {
+        "name": "name",
+        "label": "Name",
+        "type": "text"
+    },
+    {
+        "name": "email",
+        "label": "Email",
+        "type": "text"
+    },
+    {
+        "name": "phone",
+        "label": "Phone",
+        "type": "text"
+    },
+    {
+        "name": "contactType",
+        "label": "Contact type",
+        "type": "text"
+    },
+    {
+        "name": "cpf",
+        "label": "CPF",
+        "type": "text"
+    },
+    {
+        "name": "cnpj",
+        "label": "CNPJ",
+        "type": "text"
+    },
+    {
+        "name": "address",
+        "label": "Address",
+        "type": "text"
+    },
+    {
+        "name": "city",
+        "label": "City",
+        "type": "text"
+    },
+    {
+        "name": "state",
+        "label": "State",
+        "type": "text"
+    },
+    {
+        "name": "country",
+        "label": "Country",
+        "type": "text"
+    },
+    {
+        "name": "postalCode",
+        "label": "Postal code",
+        "type": "text"
+    },
+    {
+        "name": "customFields",
+        "label": "Custom fields",
+        "type": "collection",
+        "spec": []
+    },
+    {
+        "name": "createdAt",
+        "label": "Created at",
+        "type": "date"
+    },
+    {
+        "name": "updatedAt",
+        "label": "Updated at",
+        "type": "date"
+    },
+    {
+        "name": "eventId",
+        "label": "Event ID",
+        "type": "text"
+    },
+    {
+        "name": "eventAt",
+        "label": "Event at",
+        "type": "date"
+    }
+]

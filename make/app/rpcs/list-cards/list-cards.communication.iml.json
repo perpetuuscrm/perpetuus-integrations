@@ -1,0 +1,23 @@
+{
+    "url": "/boards/{{parameters.boardId}}/cards",
+    "method": "GET",
+    "qs": {
+        "sort": "updatedAt:desc",
+        "stats": "false",
+        "pagination[pageSize]": 100
+    },
+    "response": {
+        "iterate": "{{body.data}}",
+        "limit": 300,
+        "output": {
+            "label": "{{item.title}}",
+            "value": "{{item.documentId}}"
+        }
+    },
+    "pagination": {
+        "qs": {
+            "pagination[page]": "{{pagination.page}}"
+        },
+        "condition": "{{body.meta.pagination.page < body.meta.pagination.pageCount}}"
+    }
+}

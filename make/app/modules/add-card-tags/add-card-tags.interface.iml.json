@@ -1,0 +1,101 @@
+[
+    {
+        "name": "id",
+        "label": "Card ID",
+        "type": "text"
+    },
+    {
+        "name": "title",
+        "label": "Title",
+        "type": "text"
+    },
+    {
+        "name": "boardId",
+        "label": "Board ID",
+        "type": "text"
+    },
+    {
+        "name": "phaseId",
+        "label": "Phase ID",
+        "type": "text"
+    },
+    {
+        "name": "phaseName",
+        "label": "Phase name",
+        "type": "text"
+    },
+    {
+        "name": "phaseEnteredAt",
+        "label": "Phase entered at",
+        "type": "date"
+    },
+    {
+        "name": "contactId",
+        "label": "Contact ID",
+        "type": "text"
+    },
+    {
+        "name": "contactName",
+        "label": "Contact name",
+        "type": "text"
+    },
+    {
+        "name": "contactEmail",
+        "label": "Contact email",
+        "type": "text"
+    },
+    {
+        "name": "contactPhone",
+        "label": "Contact phone",
+        "type": "text"
+    },
+    {
+        "name": "value",
+        "label": "Value",
+        "type": "number"
+    },
+    {
+        "name": "dueDate",
+        "label": "Due date",
+        "type": "date"
+    },
+    {
+        "name": "description",
+        "label": "Description",
+        "type": "text"
+    },
+    {
+        "name": "tagIds",
+        "label": "Tag IDs",
+        "type": "array",
+        "spec": {
+            "type": "text",
+            "label": "ID"
+        }
+    },
+    {
+        "name": "tagNames",
+        "label": "Tag names",
+        "type": "array",
+        "spec": {
+            "type": "text",
+            "label": "Tag name"
+        }
+    },
+    {
+        "name": "fields",
+        "label": "Custom fields",
+        "type": "collection",
+        "spec": []
+    },
+    {
+        "name": "createdAt",
+        "label": "Created at",
+        "type": "date"
+    },
+    {
+        "name": "updatedAt",
+        "label": "Updated at",
+        "type": "date"
+    }
+]

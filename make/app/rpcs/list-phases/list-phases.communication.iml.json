@@ -1,0 +1,15 @@
+{
+    "url": "/boards/{{parameters.boardId}}/structure",
+    "method": "GET",
+    "qs": {
+        "include": "phases"
+    },
+    "response": {
+        "iterate": "{{ifempty(body.data.phases, body.phases)}}",
+        "limit": 300,
+        "output": {
+            "label": "{{item.name}}{{if(item.kind == 'form', ' (form)', '')}}",
+            "value": "{{item.documentId}}"
+        }
+    }
+}

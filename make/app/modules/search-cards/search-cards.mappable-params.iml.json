@@ -1,0 +1,41 @@
+[
+    {
+        "name": "boardId",
+        "type": "select",
+        "label": "Board",
+        "required": true,
+        "options": "rpc://listBoards",
+        "help": "The board to search in. Perpetuus searches cards one board at a time."
+    },
+    {
+        "name": "query",
+        "type": "text",
+        "label": "Title contains",
+        "help": "Text contained in the card title, case-insensitive. Leave empty to list every card."
+    },
+    {
+        "name": "phaseId",
+        "type": "select",
+        "label": "Phase",
+        "options": "rpc://listPhases",
+        "help": "Only cards currently in this phase."
+    },
+    {
+        "name": "contactId",
+        "type": "select",
+        "label": "Contact ID",
+        "options": "rpc://listContacts",
+        "mode": "edit",
+        "help": "Only cards linked to this contact. To find the cards of an email, use Search contacts first and map the contact ID here."
+    },
+    {
+        "name": "limit",
+        "type": "uinteger",
+        "label": "Limit",
+        "default": 10,
+        "validate": {
+            "max": 100
+        },
+        "help": "Maximum number of cards to return, up to 100. Leave it empty to return up to 100."
+    }
+]

@@ -1,0 +1,12 @@
+{
+    "url": "/boards/{{parameters.boardId}}/members",
+    "method": "GET",
+    "response": {
+        "iterate": "{{ifempty(body.members, body.data)}}",
+        "limit": 300,
+        "output": {
+            "label": "{{ifempty(item.displayName, ifempty(item.user.name, ifempty(item.user.username, ifempty(item.user.email, item.documentId))))}}",
+            "value": "{{item.documentId}}"
+        }
+    }
+}

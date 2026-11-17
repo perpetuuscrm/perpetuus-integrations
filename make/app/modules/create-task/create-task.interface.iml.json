@@ -1,0 +1,71 @@
+[
+    {
+        "name": "id",
+        "label": "Task ID",
+        "type": "text"
+    },
+    {
+        "name": "name",
+        "label": "Name",
+        "type": "text"
+    },
+    {
+        "name": "description",
+        "label": "Description",
+        "type": "text"
+    },
+    {
+        "name": "type",
+        "label": "Type",
+        "type": "text"
+    },
+    {
+        "name": "priority",
+        "label": "Priority",
+        "type": "text"
+    },
+    {
+        "name": "status",
+        "label": "Status",
+        "type": "text"
+    },
+    {
+        "name": "dueDate",
+        "label": "Due date",
+        "type": "date"
+    },
+    {
+        "name": "completedAt",
+        "label": "Completed at",
+        "type": "date"
+    },
+    {
+        "name": "cardId",
+        "label": "Card ID",
+        "type": "text"
+    },
+    {
+        "name": "cardTitle",
+        "label": "Card title",
+        "type": "text"
+    },
+    {
+        "name": "assigneeIds",
+        "label": "Assignee IDs",
+        "type": "array",
+        "spec": {
+            "type": "text",
+            "label": "ID"
+        }
+    },
+    {
+        "name": "createdAt",
+        "label": "Created at",
+        "type": "date"
+    },
+    {
+        "name": "updatedAt",
+        "label": "Updated at",
+        "type": "date"
+    }
+]

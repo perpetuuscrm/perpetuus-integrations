@@ -1,0 +1,22 @@
+{
+    "url": "/boards/{{parameters.boardId}}/structure",
+    "method": "GET",
+    "qs": {
+        "include": "phases,fields"
+    },
+    "response": {
+        "iterate": {
+            "container": "{{distinct(flatten(map(ifempty(body.data.phases, body.phases), 'fields')), 'slug')}}",
+            "condition": "{{item.slug && item.type != 'statement' && item.type != 'whatsapp_link' && !contains(split('name,boardId,title,phaseId,contactId,tagIds,value,dueDate,description,assigneeIds,fields', ','), item.slug)}}"
+        },
+        "output": {
+            "name": "{{item.slug}}",
+            "label": "{{ifempty(item.label, item.slug)}}",
+            "type": "{{switch(item.type, 'number', 'number', 'currency', 'number', 'datetime', 'date', 'switch', 'boolean', 'checkbox', 'boolean', 'email', 'email', 'url', 'url', 'text_list', 'array', 'url_list', 'array', 'multiselect', if(item.options[1].value, 'select', 'array'), 'select', if(item.options[1].value, 'select', 'text'), 'radio', if(item.options[1].value, 'select', 'text'), 'text')}}",
+            "multiple": "{{item.type == 'multiselect'}}",
+            "options": "{{if(item.options[1].value, item.options, undefined)}}",
+            "required": "{{item.required == true && item.type != 'hidden' && contains(map(flatten(map(ifempty(body.data.phases, body.phases), 'fields', 'kind', 'form')), 'slug'), item.slug)}}",
+            "help": "{{trim(ifempty(item.helpText, '') + if(item.type == 'date', ' Format: YYYY-MM-DD.', '') + if(item.options[1] && !item.options[1].value, ' Options: ' + join(item.options, ', ') + '.', ''))}}"
+        }
+    }
+}

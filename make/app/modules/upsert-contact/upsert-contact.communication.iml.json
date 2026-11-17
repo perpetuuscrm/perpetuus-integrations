@@ -1,0 +1,62 @@
+{
+    "url": "/contacts/upsert",
+    "method": "POST",
+    "body": {
+        "data": {
+            "name": "{{parameters.name}}",
+            "email": "{{parameters.email}}",
+            "phone": "{{parameters.phone}}",
+            "contact_type": "{{switch(parameters.contactType, 'person', 'pessoa', 'company', 'empresa')}}",
+            "cpf": "{{parameters.cpf}}",
+            "cnpj": "{{parameters.cnpj}}",
+            "address": "{{parameters.address}}",
+            "city": "{{parameters.city}}",
+            "state": "{{parameters.state}}",
+            "country": "{{parameters.country}}",
+            "postal_code": "{{parameters.postalCode}}",
+            "customFields": "{{if(length(ifempty(parameters.customFields, emptyarray)) > 0, toCollection(parameters.customFields, 'key', 'value'), undefined)}}"
+        },
+        "matchBy": "{{parameters.matchBy}}"
+    },
+    "response": {
+        "error": {
+            "message": "[{{statusCode}}] {{if(statusCode >= 500, 'Perpetuus server error (HTTP ' + statusCode + '). Try again later.', 'Perpetuus request failed (HTTP ' + statusCode + '): ' + ifempty(ifempty(body.error.message, body.message), 'unknown error'))}}",
+            "500": {
+                "type": "RuntimeError",
+                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+            },
+            "502": {
+                "type": "RuntimeError",
+                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+            },
+            "503": {
+                "type": "RuntimeError",
+                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+            },
+            "504": {
+                "type": "RuntimeError",
+                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+            }
+        },
+        "output": {
+            "id": "{{body.data.documentId}}",
+            "name": "{{body.data.name}}",
+            "email": "{{body.data.email}}",
+            "phone": "{{body.data.phone}}",
+            "contactType": "{{switch(body.data.contact_type, 'pessoa', 'person', 'empresa', 'company')}}",
+            "cpf": "{{body.data.cpf}}",
+            "cnpj": "{{body.data.cnpj}}",
+            "address": "{{body.data.address}}",
+            "city": "{{body.data.city}}",
+            "state": "{{body.data.state}}",
+            "country": "{{body.data.country}}",
+            "postalCode": "{{body.data.postal_code}}",
+            "customFields": "{{body.data.customFields}}",
+            "createdAt": "{{body.data.createdAt}}",
+            "updatedAt": "{{body.data.updatedAt}}",
+            "created": "{{body.meta.created == true}}",
+            "matchedBy": "{{body.meta.matchedBy}}",
+            "otherMatchIds": "{{ifempty(body.meta.otherMatches, emptyarray)}}"
+        }
+    }
+}
