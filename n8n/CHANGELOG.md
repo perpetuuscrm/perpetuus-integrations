@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 (2026-11-17)
+
+- Author email changed to luis.santos@perpetuus.com.br so the n8n Creator Portal sends the ownership token to a mailbox that exists.
+
 ## 0.1.1 (2026-11-17)
 
 - First public release. Publishes with `access: public` so npm can attach provenance (0.1.0 was never published).
