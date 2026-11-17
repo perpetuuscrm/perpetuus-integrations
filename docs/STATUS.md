@@ -8,7 +8,7 @@ Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do 
 
 | Conector | Pasta | Versão | Código | Testes | Publicado |
 |---|---|---|---|---|---|
-| n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.2 | pronto | 53 testes, lint e build ok | **sim, npm com provenance**; verificação: revisão automática ok, manual aguardando vídeo |
+| n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.3 | pronto | 54 testes, lint e build ok | **sim, npm com provenance**; verificação: revisão automática ok, manual aguardando vídeo |
 | Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | **app privado no Zapier** (id 249970, versão 1.0.0 enviada); falta testar e pedir revisão |
 | Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | **app privado no Make** (`perpetuus-crm-ej2gdv`, versão 1, criado e enviado em 17/11/2026, zona us2); requisições testadas contra a API real (harness); falta testar no editor e publicar |
 
@@ -48,12 +48,14 @@ Entregue e em produção:
 
 ### Publicação e verificação (17/11/2026)
 
-- **Publicado no npm:** [`n8n-nodes-perpetuus`](https://www.npmjs.com/package/n8n-nodes-perpetuus), `latest` = **0.1.2**, com provenance SLSA assinada pelo GitHub Actions (tag `n8n-v0.1.2`). Conta npm `perpetuuscrm` (2FA ligado), organização `perpetuus`.
+- **Publicado no npm:** [`n8n-nodes-perpetuus`](https://www.npmjs.com/package/n8n-nodes-perpetuus), `latest` = **0.1.3**, com provenance SLSA assinada pelo GitHub Actions (tag `n8n-v0.1.3`). Conta npm `perpetuuscrm` (2FA ligado), organização `perpetuus`.
 - **Repositório público:** o npm só aceita provenance de repositório público, então `perpetuuscrm/perpetuus-integrations` passou a ser público.
 - **Histórico de versões:**
   - 0.1.0 nunca foi publicada (faltava `publishConfig.access: public`).
   - 0.1.1 foi a primeira publicação.
   - 0.1.2 trocou o e-mail de autor para `luis.santos@perpetuus.com.br`, porque o Creator Portal manda o token de posse para o e-mail de autor e `contato@` não recebia.
+  - 0.1.3 corrige o erro "Class could not be found" ao instalar na instância `automation.services.perpetuus.com.br` (n8n 2.36.7). Causa: o pacote resolve o `n8n-workflow` que estiver em `~/.n8n/nodes/node_modules` antes do próprio n8n, e instâncias que instalaram community nodes no n8n 1.x (lá, o `n8n-nodes-kommo`) podem ter uma cópia antiga sem `NodeConnectionTypes`. O construtor dava `TypeError: Cannot read properties of undefined (reading 'Main')`, que o n8n mostra como "Class could not be found". Reproduzido num n8n 2.36.7 local com `n8n-workflow@1.60.0` nessa pasta. Agora `inputs`/`outputs` usam o literal `'main'`, e um teste cobre isso.
+  - O pacote submetido no Creator Portal era a 0.1.2. O vídeo deve mostrar a instalação da 0.1.3; conferir se o portal pede para atualizar a versão submetida.
   - Existe ainda uma versão `0.0.0-stage`, publicada pelo próprio `n8n-node release` no mesmo run da 0.1.1. Pendente marcar como deprecated.
 - **Creator Portal** (usuário `perpetuus`): pacote submetido.
   - Revisão automática: **COMPLETE** ("Your node has passed the automated review process").

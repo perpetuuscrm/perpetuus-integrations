@@ -4,8 +4,9 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	IPollFunctions,
+	NodeConnectionType,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
 import { getApiClient, toNodeError } from '../Perpetuus/GenericFunctions';
 import { getPhasesWithAny, searchBoards } from '../Perpetuus/methods';
@@ -19,6 +20,12 @@ import {
 	type TriggerParams,
 } from '../Perpetuus/shared/polling';
 
+// Literal instead of NodeConnectionTypes.Main: n8n resolves `n8n-workflow` from
+// ~/.n8n/nodes/node_modules first, and instances with an older copy there (left by
+// community packages installed under n8n 1.x) have no NodeConnectionTypes export,
+// which makes the constructor throw and n8n report "Class could not be found".
+const MAIN = 'main' as NodeConnectionType;
+
 export class PerpetuusTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Perpetuus Trigger',
@@ -31,7 +38,7 @@ export class PerpetuusTrigger implements INodeType {
 		defaults: { name: 'Perpetuus Trigger' },
 		polling: true,
 		inputs: [],
-		outputs: [NodeConnectionTypes.Main],
+		outputs: [MAIN],
 		credentials: [{ name: 'perpetuusApi', required: true }],
 		properties: [
 			{
@@ -67,13 +74,19 @@ export class PerpetuusTrigger implements INodeType {
 			boardLocator({ show: { event: ['newCard', 'cardEnteredPhase'] } }),
 			boardLocator(
 				{ show: { event: ['taskCompleted'] } },
-				{ required: false, description: 'Only tasks of this board. Empty watches every board you can access.' },
+				{
+					required: false,
+					description: 'Only tasks of this board. Empty watches every board you can access.',
+				},
 			),
 			{
 				displayName: 'Phase Name or ID',
 				name: 'phaseId',
 				type: 'options',
-				typeOptions: { loadOptionsMethod: 'getPhasesWithAny', loadOptionsDependsOn: ['boardId.value'] },
+				typeOptions: {
+					loadOptionsMethod: 'getPhasesWithAny',
+					loadOptionsDependsOn: ['boardId.value'],
+				},
 				default: '',
 				description:
 					'Only cards entering this phase. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',

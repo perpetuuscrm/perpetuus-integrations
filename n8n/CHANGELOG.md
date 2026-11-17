@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 (2026-11-17)
+
+- Fix "Class could not be found" when installing on instances that have an older `n8n-workflow` in `~/.n8n/nodes/node_modules` (left there by community packages installed under n8n 1.x). The community package resolves that copy before n8n's own, and versions before `NodeConnectionTypes` existed made the node constructors throw. The nodes now declare their `main` inputs and outputs as string literals, so they load with any `n8n-workflow` version. Regression test added.
+
 ## 0.1.2 (2026-11-17)
 
 - Author email changed to luis.santos@perpetuus.com.br so the n8n Creator Portal sends the ownership token to a mailbox that exists.

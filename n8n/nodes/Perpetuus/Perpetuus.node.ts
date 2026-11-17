@@ -4,8 +4,9 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
+	NodeConnectionType,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
 import { cardFields, cardOperations } from './descriptions/CardDescription';
 import { contactFields, contactOperations } from './descriptions/ContactDescription';
@@ -33,6 +34,12 @@ import {
 } from './shared/operations';
 import type { ApiClient } from './shared/transport';
 
+// Literal instead of NodeConnectionTypes.Main: n8n resolves `n8n-workflow` from
+// ~/.n8n/nodes/node_modules first, and instances with an older copy there (left by
+// community packages installed under n8n 1.x) have no NodeConnectionTypes export,
+// which makes the constructor throw and n8n report "Class could not be found".
+const MAIN = 'main' as NodeConnectionType;
+
 /**
  * Programmatic style: several operations need more than one dependent API call (create card
  * then move it, read tags then merge them, then re-read the card for a stable output), and
@@ -49,8 +56,8 @@ export class Perpetuus implements INodeType {
 		description: 'Manage contacts, cards and tasks in Perpetuus CRM',
 		defaults: { name: 'Perpetuus' },
 		usableAsTool: true,
-		inputs: [NodeConnectionTypes.Main],
-		outputs: [NodeConnectionTypes.Main],
+		inputs: [MAIN],
+		outputs: [MAIN],
 		credentials: [{ name: 'perpetuusApi', required: true }],
 		properties: [
 			{
@@ -168,7 +175,8 @@ async function runOperation(
 		if (operation === 'create') {
 			const extra = context.getNodeParameter('additionalFields', i, {}) as IDataObject;
 			const mapped = context.getNodeParameter('fields', i, {}) as IDataObject;
-			const value = extra.value === undefined || extra.value === '' ? undefined : Number(extra.value);
+			const value =
+				extra.value === undefined || extra.value === '' ? undefined : Number(extra.value);
 			return [
 				await createCard(client, {
 					boardId,
