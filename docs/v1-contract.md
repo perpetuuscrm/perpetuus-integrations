@@ -7,7 +7,7 @@ a divergência entra aqui primeiro.
 
 - Versão do contrato: **v1** (2026-11-16)
 - API: Perpetuus REST (Strapi 5), OpenAPI em `perpetuus-docs/public/openapi.json` do monorepo
-- Implementação de referência: [`n8n/`](../n8n/); Zapier em [`zapier/`](../zapier/)
+- Implementação de referência: [`n8n/`](../n8n/); Zapier em [`zapier/`](../zapier/); Make em [`make/`](../make/)
 
 ## Sumário
 
@@ -108,6 +108,12 @@ dentro da chamada só acontece com `Retry-After` ≤ **10 s** (ainda no máximo 
 disso, o conector lança `ThrottledError` na hora com o `Retry-After` (60 s quando a API não
 manda) e o próprio Zapier repete o passo depois. O resto da tabela vale igual.
 
+**Ajuste do Make:** um módulo do Make não consegue esperar nem repetir uma requisição que voltou
+com erro HTTP. O 429 vira `RateLimitError` na hora (o Make pausa o cenário e tenta de novo depois,
+sem contar como erro consecutivo). 5xx em leitura (gatilhos, buscas, RPCs) fica `ConnectionError`
+(o Make tenta de novo no ciclo seguinte); 5xx em `POST`/`PUT` vira `RuntimeError`, para o Make não
+repetir a escrita e duplicar card, tarefa ou contato. 4xx não é repetido.
+
 ### 3.3 Mensagens de erro (texto canônico em inglês)
 
 | HTTP | Quando | Mensagem do conector |
@@ -128,6 +134,13 @@ mensagem como ` Details: <json>`, e o `code` do `z.errors.Error` identifica o ca
 (`InvalidData`, `AuthenticationError`, `PlanLimitReached`, `MissingScope`, `Forbidden`,
 `NotFound`, `ServerError`, `InvalidInput` para validação local).
 
+No Make a mensagem vem prefixada com o status, como o Make recomenda (`[404] Not found in
+Perpetuus: …`), e `error.details` é anexado como ` Details: <json>`. Tipos de erro: 400 →
+`DataError` (pode ficar como execução incompleta), 401 → `InvalidAccessTokenError` (o cenário para e
+o usuário é avisado), 429 → `RateLimitError`, 5xx → ver 3.2; o resto fica `RuntimeError`. Para o
+403 de escopo, o Make usa `error.details.requiredScope` ou a última palavra da mensagem
+(`PAT sem escopo crm:write`).
+
 ---
 
 ## 4. Objetos de saída canônicos
@@ -136,6 +149,10 @@ A saída é **achatada e estável**: as chaves abaixo existem sempre (com `null`
 valor), nunca há objetos Strapi aninhados (`currentPhase.documentId` etc.) e listas são de
 strings. A única chave de objeto é `fields`/`customFields` (mapa slug → valor), que o Zapier
 achata como `fields__slug` e o Make expõe como coleção.
+
+No Make, as chaves vêm da interface tipada de cada módulo (datas como `date`, `value` como número,
+listas de IDs como arrays de texto); um valor ausente fica vazio no bundle em vez de `null`, que é
+como o Make trata campos sem valor.
 
 ### 4.1 Contact
 
@@ -332,8 +349,15 @@ operador só vê as tarefas em que é responsável.
   `sort=<campo>:desc` com 100 itens (tarefas: `limit=100&offset=0`), sem filtro `$gte`, e a
   deduplicação por `id` fica com a plataforma. Mais de 100 eventos entre dois ciclos: os mais
   antigos não são vistos.
-- **Make**: módulo trigger "polling" com `trigger: { id: "{{item.eventId}}", date:
-  "{{item.eventAt}}", type: "date", order: "asc" }` e `epoch` para escolher o ponto inicial.
+- **Make**: módulo trigger de polling com `trigger: { type: "date", order: "desc", id: <eventId>,
+  date: <eventAt> }`. O Make recomenda ler do mais novo para o mais antigo (limite de 3200 registros
+  por varredura), então a consulta usa `sort=<campo>:desc` e o filtro `$gte` com o carimbo que o
+  próprio Make guarda da execução anterior (`data.lastDate`), com paginação (`pagination[page]`;
+  tarefas: `offset`). O Make guarda o último carimbo e ID e descarta o que já devolveu, então não há
+  estado próprio do conector. O `epoch` ("Choose where to start") oferece "From now on", "Since
+  specific date", "All" e os últimos 300 itens; o `limit` (obrigatório, padrão 10) limita os
+  bundles por execução e o restante sai no ciclo seguinte. Os campos `eventId`/`eventAt` também saem
+  no bundle.
 
 ---
 
@@ -371,6 +395,10 @@ Resposta: `{ data: <contato>, meta: { created, matchedBy, otherMatches? } }` →
 `created` + `matchedBy` + `otherMatchIds`.
 
 Validação no conector antes de chamar: exigir `email` ou `phone`.
+
+No Make não há como interromper o módulo antes da requisição; a exigência de `email` ou `phone`
+fica no texto de ajuda e a API responde 400 se faltarem os dois. `customFields` é informado como
+lista de pares chave/valor e enviado como objeto.
 
 ### 6.2 Create Card (`createCard`)
 
@@ -410,6 +438,14 @@ Vincular contato: suportado (`data.contact` = documentId do contato).
 No Zapier, os campos do board viram entradas dinâmicas `fields__<slug>` (carregadas da
 estrutura do board escolhido) e há também o dicionário `fields` para boards mapeados de um
 passo anterior; o conector junta os dois em `data.fields`.
+
+No Make, os campos do board aparecem abaixo do campo `boardId` (RPC de campos dinâmicos, com o
+`slug` como nome e o tipo do Make correspondente; obrigatórios só os da fase de formulário) e o
+`fields` é uma lista de pares slug/valor para boards mapeados de um passo anterior; os dois são
+juntados em `data.fields`. Um campo custom cujo slug coincide com uma entrada do módulo (`title`,
+`value`, `description`…) só pode ser preenchido por `fields`. Como o Make não tem sucesso parcial,
+se o movimento para `phaseId` falhar o módulo falha depois de criar o card (não há `warning`); a
+mensagem de erro diz o que aconteceu e o card fica na fase inicial.
 
 ### 6.3 Move Card to Phase (`moveCard`)
 
@@ -502,6 +538,11 @@ de um contato por e-mail: Find Contact → Find Card com `contactId`.
 No Zapier as buscas não expõem `limit`: leem até 50 resultados (o padrão) e o Zapier usa o
 primeiro. Find Contact + Create or Update Contact formam o "Find or Create Contact".
 
+No Make as buscas são módulos *search* (`searchContacts`, `searchCards`) que devolvem um bundle por
+resultado, com páginas de 100 (`pagination[pageSize]=100`). O `limit` segue a convenção do Make:
+opcional, padrão 10, e vazio devolve o máximo do contrato (100). Na busca por telefone sem nenhum
+dígito o módulo não chama a API e devolve zero resultados, em vez de listar todos os contatos.
+
 ---
 
 ## 8. Listas dinâmicas (dropdowns)
@@ -523,6 +564,12 @@ No Zapier cada lista é um trigger oculto (`boardList`, `phaseList`, `tagList`, 
 Zapier não mandam texto de busca, então contatos e cards são listados por `updatedAt:desc`
 com paginação do próprio Zapier (`bundle.meta.page`); para achar um registro específico há os
 campos ligados às buscas (`search: 'findContact.id'` / `'findCard.id'`).
+
+No Make cada lista é um RPC (`listBoards`, `listPhases`, `listTags`, `listMembers`, `listCards`,
+`listContacts`) com até 300 itens (3 páginas de 100), e os campos do board são um RPC de campos
+dinâmicos (`listCardFields`). Campos de card e de contato que recebem ID abrem em modo de mapeamento
+(`mode: edit`), como o Make pede para módulos de atualização. Opções de campo gravadas como texto
+simples (sem `{ label, value }`) viram campo de texto, com as opções listadas na ajuda.
 
 ---
 
