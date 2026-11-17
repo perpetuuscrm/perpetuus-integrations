@@ -1,0 +1,18 @@
+{
+  "name": "perpetuus-make-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Perpetuus CRM custom app for Make: local validation tooling (the app itself lives in app/).",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate": "node scripts/validate.mjs",
+    "validate:ci": "node scripts/validate.mjs --require-schemas"
+  },
+  "devDependencies": {
+    "ajv": "8.17.1"
+  }
+}
