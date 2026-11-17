@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-perpetuus",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Official n8n nodes for Perpetuus CRM: contacts, cards, phases, tags and tasks, with polling triggers.",
 	"license": "MIT",
 	"homepage": "https://github.com/perpetuuscrm/perpetuus-integrations/tree/main/n8n#readme",
@@ -57,5 +57,8 @@
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
