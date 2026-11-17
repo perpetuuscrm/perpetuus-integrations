@@ -4,7 +4,7 @@
     "qs": {
         "filters[completedAt][$notNull]": "true",
         "filters[completedAt][$gte]": "{{formatDate(ifempty(data.lastDate, '1970-01-01T00:00:00.000Z'), 'YYYY-MM-DDTHH:mm:ss.SSS[Z]', 'UTC')}}",
-        "filters[board][documentId]": "{{parameters.boardId}}",
+        "filters[board][documentId]": "{{ifempty(parameters.boardId, undefined)}}",
         "sort": "completedAt:desc",
         "limit": 100
     },

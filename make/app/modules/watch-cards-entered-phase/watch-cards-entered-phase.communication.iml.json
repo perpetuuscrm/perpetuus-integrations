@@ -3,7 +3,7 @@
     "method": "GET",
     "qs": {
         "filters[currentPhaseEnteredAt][$notNull]": "true",
-        "filters[currentPhase][documentId][$eq]": "{{parameters.phaseId}}",
+        "filters[currentPhase][documentId][$eq]": "{{ifempty(parameters.phaseId, undefined)}}",
         "filters[currentPhaseEnteredAt][$gte]": "{{formatDate(ifempty(data.lastDate, '1970-01-01T00:00:00.000Z'), 'YYYY-MM-DDTHH:mm:ss.SSS[Z]', 'UTC')}}",
         "sort": "currentPhaseEnteredAt:desc",
         "stats": "false",

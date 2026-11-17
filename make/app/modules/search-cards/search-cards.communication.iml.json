@@ -2,9 +2,9 @@
     "url": "/boards/{{parameters.boardId}}/cards",
     "method": "GET",
     "qs": {
-        "filters[title][$containsi]": "{{parameters.query}}",
-        "filters[currentPhase][documentId][$eq]": "{{parameters.phaseId}}",
-        "filters[contact][documentId][$eq]": "{{parameters.contactId}}",
+        "filters[title][$containsi]": "{{ifempty(parameters.query, undefined)}}",
+        "filters[currentPhase][documentId][$eq]": "{{ifempty(parameters.phaseId, undefined)}}",
+        "filters[contact][documentId][$eq]": "{{ifempty(parameters.contactId, undefined)}}",
         "sort": "updatedAt:desc",
         "stats": "false",
         "pagination[pageSize]": 100,
