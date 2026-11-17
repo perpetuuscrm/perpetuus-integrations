@@ -4,15 +4,19 @@
         "type": "select",
         "label": "Board",
         "required": true,
-        "options": "rpc://listBoards",
+        "options": {
+            "store": "rpc://listBoards",
+            "nested": [
+                {
+                    "name": "phaseId",
+                    "type": "select",
+                    "label": "Phase",
+                    "options": "rpc://listPhases",
+                    "help": "Only cards entering this phase trigger the scenario. Leave it empty to watch every phase of the board. A new card counts as entering the first phase."
+                }
+            ]
+        },
         "help": "The Perpetuus board (pipeline). The list shows up to 300 boards; map a board ID to use any other."
-    },
-    {
-        "name": "phaseId",
-        "type": "select",
-        "label": "Phase",
-        "options": "rpc://listPhases",
-        "help": "Only cards entering this phase trigger the scenario. Leave it empty to watch every phase of the board. A new card counts as entering the first phase."
     },
     {
         "name": "limit",

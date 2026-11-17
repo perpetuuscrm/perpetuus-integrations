@@ -10,17 +10,29 @@
         "type": "select",
         "label": "Board",
         "required": false,
-        "options": "rpc://listBoards",
+        "options": {
+            "store": "rpc://listBoards",
+            "nested": [
+                {
+                    "name": "cardId",
+                    "type": "select",
+                    "label": "Card ID",
+                    "required": false,
+                    "options": "rpc://listCards",
+                    "mode": "edit",
+                    "help": "Card of the task. Provide a board or a card. Map the card ID from a previous module, or switch off Map to pick a recent card of the selected board."
+                },
+                {
+                    "name": "assigneeIds",
+                    "type": "select",
+                    "label": "Assignees",
+                    "multiple": true,
+                    "options": "rpc://listMembers",
+                    "help": "Board members responsible for the task. Leave empty to assign the API key owner. Choose the board first."
+                }
+            ]
+        },
         "help": "Board of the task. Provide a board or a card; when a card is given, its board is used."
-    },
-    {
-        "name": "cardId",
-        "type": "select",
-        "label": "Card ID",
-        "required": false,
-        "options": "rpc://listCards",
-        "mode": "edit",
-        "help": "Card of the task. Provide a board or a card. Map the card ID from a previous module, or switch off Map to pick a recent card of the selected board."
     },
     {
         "name": "description",
@@ -85,13 +97,5 @@
         "type": "text",
         "label": "Status",
         "help": "A task status configured on the board. Leave empty to use the first status of the board."
-    },
-    {
-        "name": "assigneeIds",
-        "type": "select",
-        "label": "Assignees",
-        "multiple": true,
-        "options": "rpc://listMembers",
-        "help": "Board members responsible for the task. Leave empty to assign the API key owner. Choose the board first."
     }
 ]

@@ -420,12 +420,26 @@ for (const [id, meta] of Object.entries(modules)) {
     }
   }
 
+  // Board-dependent dropdowns must be nested under the Board select: Make only passes the
+  // selected board to RPCs of nested parameters (top-level siblings call /boards//… → 404).
+  {
+    const BOARD_RPCS = ['listPhases', 'listTags', 'listCards', 'listMembers', 'listCardFields'];
+    const board = Array.isArray(params) ? params.find((p) => p && p.name === 'boardId') : undefined;
+    for (const p of Array.isArray(params) ? params : []) {
+      if (!p || typeof p !== 'object' || p === board) continue;
+      const refs = rpcRefs(p.options ?? []);
+      for (const ref of refs.filter((r) => BOARD_RPCS.includes(r))) {
+        fail(where, `"${p.name}" uses rpc://${ref} (reads the board) but is not nested under boardId.options.nested`);
+      }
+    }
+  }
+
   // Contract field names.
   const spec = OPS[id];
   if (spec) {
     if (spec.type !== meta.moduleType) fail(where, `module type must be ${spec.type}`);
     const allowed = [...spec.inputs, ...(spec.makeOnly ?? [])];
-    const paramNames = names(params);
+    const paramNames = [...allParamNames(params)];
     for (const n of paramNames) if (!allowed.includes(n)) fail(where, `input "${n}" is not in the contract for ${spec.op}`);
     for (const n of spec.inputs) if (!paramNames.includes(n)) fail(where, `contract input "${n}" of ${spec.op} is missing`);
     if (!sameSet(ifaceNames, spec.output)) {

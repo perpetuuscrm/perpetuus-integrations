@@ -4,7 +4,18 @@
         "type": "select",
         "label": "Board",
         "required": true,
-        "options": "rpc://listBoards",
+        "options": {
+            "store": "rpc://listBoards",
+            "nested": [
+                {
+                    "name": "phaseId",
+                    "type": "select",
+                    "label": "Phase",
+                    "options": "rpc://listPhases",
+                    "help": "Only cards currently in this phase."
+                }
+            ]
+        },
         "help": "The board to search in. Perpetuus searches cards one board at a time."
     },
     {
@@ -12,13 +23,6 @@
         "type": "text",
         "label": "Title contains",
         "help": "Text contained in the card title, case-insensitive. Leave empty to list every card."
-    },
-    {
-        "name": "phaseId",
-        "type": "select",
-        "label": "Phase",
-        "options": "rpc://listPhases",
-        "help": "Only cards currently in this phase."
     },
     {
         "name": "contactId",

@@ -7,6 +7,29 @@
         "options": {
             "store": "rpc://listBoards",
             "nested": [
+                {
+                    "name": "phaseId",
+                    "type": "select",
+                    "label": "Phase",
+                    "options": "rpc://listPhases",
+                    "help": "Phase to place the card in. Leave empty to keep the first phase. Perpetuus always creates cards in the first phase, so a different phase means a second request that moves the card."
+                },
+                {
+                    "name": "tagIds",
+                    "type": "select",
+                    "label": "Tags",
+                    "multiple": true,
+                    "options": "rpc://listTags",
+                    "help": "Tags of the selected board. When mapping, tag IDs or tag slugs are accepted."
+                },
+                {
+                    "name": "assigneeIds",
+                    "type": "select",
+                    "label": "Assignees",
+                    "multiple": true,
+                    "options": "rpc://listMembers",
+                    "help": "Board members responsible for it. Choose the board first."
+                },
                 "rpc://listCardFields"
             ]
         },
@@ -20,27 +43,12 @@
         "help": "Card title (the `name` field of the board)."
     },
     {
-        "name": "phaseId",
-        "type": "select",
-        "label": "Phase",
-        "options": "rpc://listPhases",
-        "help": "Phase to place the card in. Leave empty to keep the first phase. Perpetuus always creates cards in the first phase, so a different phase means a second request that moves the card."
-    },
-    {
         "name": "contactId",
         "type": "select",
         "label": "Contact ID",
         "options": "rpc://listContacts",
         "mode": "edit",
         "help": "Contact linked to the card. Map a contact ID, for example from Create or update a contact."
-    },
-    {
-        "name": "tagIds",
-        "type": "select",
-        "label": "Tags",
-        "multiple": true,
-        "options": "rpc://listTags",
-        "help": "Tags of the selected board. When mapping, tag IDs or tag slugs are accepted."
     },
     {
         "name": "value",
@@ -58,14 +66,6 @@
         "name": "description",
         "type": "text",
         "label": "Description"
-    },
-    {
-        "name": "assigneeIds",
-        "type": "select",
-        "label": "Assignees",
-        "multiple": true,
-        "options": "rpc://listMembers",
-        "help": "Board members responsible for it. Choose the board first."
     },
     {
         "name": "fields",
