@@ -10,9 +10,9 @@ Este documento resume o que já foi feito nos conectores do n8n, do Zapier e do 
 |---|---|---|---|---|---|
 | n8n (`n8n-nodes-perpetuus`) | [`n8n/`](../n8n/) | 0.1.2 | pronto | 53 testes, lint e build ok | **sim, npm com provenance**; verificação: revisão automática ok, manual aguardando vídeo |
 | Zapier (Perpetuus CRM) | [`zapier/`](../zapier/) | 1.0.0 | pronto | 55 testes, `validate` ok | **app privado no Zapier** (id 249970, versão 1.0.0 enviada); falta testar e pedir revisão |
-| Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | **app privado no Make** (`perpetuus-crm-ej2gdv`, versão 1, criado e enviado em 17/11/2026, zona us2); não foi testado contra a API real nem publicado |
+| Make (Perpetuus CRM) | [`make/`](../make/) | 1 | pronto | validação local ok (contrato + schemas do editor) | **app privado no Make** (`perpetuus-crm-ej2gdv`, versão 1, criado e enviado em 17/11/2026, zona us2); requisições testadas contra a API real (harness); falta testar no editor e publicar |
 
-Os três foram testados contra a API real em 17/11/2026 na org demo (`perpetuus-demo`), em duas rodadas: ações, buscas, gatilhos e as listas de fases e campos passam. A lista de tags volta vazia (bug do backend em `/structure?include=tags`). Detalhes em [Testes contra a API real](#testes-contra-a-api-real-17112026).
+Os três foram testados contra a API real em 17/11/2026 na org demo (`perpetuus-demo`), em três rodadas. Na 3ª (18:10, horário de Brasília), depois do deploy do conserto de tags e `include=conditions`, passam ações, buscas, gatilhos e as listas de fases, campos e tags. O `include=conditions` deixa de dar 500 (volta lista vazia; o template não tem condicionais de campo). No n8n, a busca de card por contato ainda falha por causa da automação "Criar contato" do template. Detalhes em [Testes contra a API real](#testes-contra-a-api-real-17112026).
 
 ## O que a API do Perpetuus já oferece aos conectores
 
@@ -61,9 +61,7 @@ Entregue e em produção:
 
 ### Falta para a verificação
 
-1. **Testar contra a API real** com uma chave `ppt_` (`crm:read` e `crm:write`) de uma organização de demonstração com dados fictícios. Ainda não foi feito; os testes atuais usam HTTP simulado. Pontos a conferir:
-   - os filtros dos gatilhos em `currentPhaseEnteredAt` e `completedAt`;
-   - o formato de `/boards/:id/structure` e da lista de membros.
+1. ~~**Testar contra a API real** com uma chave `ppt_` (`crm:read` e `crm:write`) da org demo.~~ Feito em 17/11/2026 (três rodadas; ver [Testes contra a API real](#testes-contra-a-api-real-17112026)). A casca do n8n (`Perpetuus.node.ts`) não rodou; isso fica para o vídeo de revisão. Os testes unitários continuam com HTTP simulado.
 2. **Vídeo para a revisão manual:** até 5 minutos, sem cortes, gravado no Loom ou similar. Precisa mostrar:
    1. a instalação da versão submetida pelo npm numa instância n8n;
    2. o node inserido num workflow;
@@ -139,8 +137,8 @@ Acima do `limit`, o restante sai nas execuções seguintes.
 ### Falta para publicar
 
 1. ~~**Conta no Make** (organização da Perpetuus) e um token da API do Make com `sdk-apps:read` e `sdk-apps:write`.~~ (feito em 17/11/2026, com `luis.santos@perpetuus.com.br`).
-2. ~~**Criar o app e fazer o deploy de `make/app`.**~~ Feito em 17/11/2026: o app privado **Perpetuus CRM** (`perpetuus-crm-ej2gdv`, versão 1, zona us2.make.com) foi criado e o código foi enviado (base, conexão, 7 RPCs, 12 módulos, grupos e documentação). A origem e o `idMapping` estão em `makecomapp.json`. O Make atribuiu o nome `perpetuus-crm-ej2gdv` (o pedido era `perpetuus-crm`). Sem logo ainda (PNG 512×512). O app não foi testado contra a API real nem publicado.
-3. **Testar contra a API real** com a organização de demonstração: conexão, cada RPC no editor e os cenários de `make/docs/test-scenarios.md`. Pontos a conferir: expressões IML que não rodam fora do Make (`toCollection`/`toArray` dos campos custom, regex do telefone, filtro `data.lastDate`), formato das opções dos campos select e o `value` decimal.
+2. ~~**Criar o app e fazer o deploy de `make/app`.**~~ Feito em 17/11/2026: o app privado **Perpetuus CRM** (`perpetuus-crm-ej2gdv`, versão 1, zona us2.make.com) foi criado e o código foi enviado (base, conexão, 7 RPCs, 12 módulos, grupos e documentação). A origem e o `idMapping` estão em `makecomapp.json`. O Make atribuiu o nome `perpetuus-crm-ej2gdv` (o pedido era `perpetuus-crm`). Sem logo ainda (PNG 512×512). As requisições dos módulos foram testadas contra a API real em 17/11/2026 (harness; ver seção de testes). O app não foi publicado.
+3. **Testar no editor do Make** os cenários de `make/docs/test-scenarios.md` (o harness já cobriu conexão, RPCs e módulos contra a API real, mas o IML só roda dentro do Make). Pontos a conferir no editor: expressões IML (`toCollection`/`toArray` dos campos custom, regex do telefone, filtro `data.lastDate`), formato das opções dos campos select e o `value` decimal.
 4. **Rodar os cenários no mesmo dia** do pedido de revisão, sem dados pessoais nos logs, e apagar módulos ou conexões de teste (a publicação não pode ser desfeita).
 5. **Publicar** o app, deixar os módulos visíveis e enviar o formulário de revisão com o link da documentação da API e dos cenários.
 6. **Technology Partner** (opcional, depois da aprovação): pedido ao programa de parceiros do Make, com contato de parceria e de suporte.
@@ -149,7 +147,7 @@ Acima do `limit`, o restante sai nas execuções seguintes.
 
 Org demo `perpetuus-demo` (plano DOMINION), chave `ppt_` com `crm:read` e `crm:write`, base `https://api.perpetuus.com.br/api`. A org estava vazia, então cada rodada criou um board próprio ("TESTE conector - board", template padrão `pre-vendas-sdr`) e duas tags. Todos os registros levaram o prefixo "TESTE conector" e foram apagados no fim (a org ficou sem boards, contatos, tarefas e automações).
 
-Duas rodadas: a 1ª às 16:50, a 2ª às 17:35 (horário de Brasília), depois do deploy da correção do `/structure` (backend `edf07214`) e da mudança `8adfadb` nos filtros do Make.
+Três rodadas (horário de Brasília): a 1ª às 16:50, a 2ª às 17:35 (depois do deploy da correção do `/structure` para phases/fields/tags, backend `edf07214`, e da mudança `8adfadb` nos filtros do Make) e a 3ª às 18:10, depois do deploy do conserto de `include=tags` (lista vazia) e de `include=conditions` (que dava 500), previsto para ~18:01.
 
 Como cada conector foi exercitado:
 
@@ -157,7 +155,7 @@ Como cada conector foi exercitado:
 - **Zapier:** `zapier-platform-core` `createAppTester` local com a chave real (sem push).
 - **Make:** as requisições dos arquivos `.communication.iml.json` reproduzidas uma a uma (mesma URL, query e corpo). O IML em si só roda dentro do Make.
 
-Resultado da 2ª rodada:
+Resultado da 3ª rodada (18:10): n8n 33/34, Zapier 27/27, Make 26/26. Além do harness, `GET /boards/{id}/structure` foi conferido com `include=tags`, `include=conditions` e `include=phases,fields,tags,conditions`.
 
 | Operação | n8n | Zapier | Make |
 |---|---|---|---|
@@ -172,19 +170,21 @@ Resultado da 2ª rodada:
 | Listas de boards, membros, contatos, cards | ok | ok | ok |
 | Lista de fases (`/structure?include=phases`) | ok (12 fases, form marcada) | ok | ok |
 | Campos do card (`include=phases,fields`) | ok (obrigatórios: email, faturamento, whatsapp) | ok (`fields__*`, mesmos obrigatórios) | ok (16 slugs) |
-| Lista de tags (`include=tags`) | **vazia** | **vazia** | **vazia** |
+| Lista de tags (`include=tags`) | ok (7 tags, incl. as 2 de teste) | ok | ok (n=7) |
 | Erros 400, 401, 404 com a mensagem do contrato | ok (1ª rodada) | ok (1ª rodada) | não testado (só roda no Make) |
+
+`GET /structure?include=conditions` na 3ª rodada: **200**, `conditions: []`. O template `pre-vendas-sdr` não define condicionais de campo (só uma regra de transição para Perdido). Com `include=phases,fields,tags,conditions` na mesma chamada: 12 fases, 16 campos, 7 tags, `conditions: []`, sem 500.
 
 Não testado: 403 por falta de escopo, 429 e webhooks (os gatilhos são por polling; a API não tem webhooks).
 
 Achados em aberto:
 
-1. **Backend: `include=tags` devolve `tags: []`** mesmo com o board tendo 7 tags (5 do template + 2 de teste), que aparecem em `GET /boards/{id}/tags`. Os dropdowns de tag ficam vazios nos três conectores (dá para mapear o id da tag). O `/boards/{id}/tags` busca pelo lado da tag (`strapi.documents('api::tag.tag').findMany({ filters: { board: { documentId } } })`); proposta: usar a mesma consulta em `perpetuus-back/src/services/board/board-structure.ts` em vez de `populate.tags`.
-2. **Backend: `include=conditions` ainda dá 500.** O trecho das condicionais em `board-structure.ts` ainda usa `populate: { phase: { fields: ['documentId'] } }`, o mesmo formato que causava o 500 antes. Proposta: `populate: { phase: true }`. Nenhum conector usa `conditions`; só afeta o MCP e a API.
-3. **A automação "Criar contato" do template troca o contato do card.** Criando o card com `contactId` de um contato e `fields.email` de outro, a automação cria um contato novo a partir de `fields.email` e o vincula ao card, logo depois da criação (assíncrona). Na 2ª rodada isso aconteceu antes da busca por contato do n8n, que então não achou o card pelo contato original. Quando `fields.email` é o e-mail do próprio contato (Zapier e Make), o contato é mantido. Não é bug de conector; proposta: a automação respeitar um `contact` já informado, ou documentar que o e-mail do card prevalece.
-4. Sem chave nenhuma a API responde 403, não 401; com chave inválida responde 401 (mapeado certo nos três).
+1. **A automação "Criar contato" do template troca o contato do card.** Criando o card com `contactId` de um contato e `fields.email` de outro, a automação cria um contato novo a partir de `fields.email` e o vincula ao card, logo depois da criação (assíncrona). Na 2ª e na 3ª rodadas isso aconteceu antes da busca por contato do n8n, que então não achou o card pelo contato original. Quando `fields.email` é o e-mail do próprio contato (Zapier e Make), o contato é mantido. Não é bug de conector; proposta: a automação respeitar um `contact` já informado, ou documentar que o e-mail do card prevalece.
+2. Sem chave nenhuma a API responde 403, não 401; com chave inválida responde 401 (mapeado certo nos três).
 
 Resolvidos desde a 1ª rodada: o 500 em `/structure` para `phases`, `fields` e `tags` (backend `edf07214`) e os filtros opcionais vazios do Make (`8adfadb`: `ifempty(..., undefined)` em Search Cards, Watch Cards Entered Phase e Watch Completed Tasks). A mudança do Make foi enviada ao app privado em 17/11/2026 (versão 1, us2: seção `api` de Search Cards, Watch Cards Entered Phase e Watch Completed Tasks, conferida pela API do Make).
+
+Resolvidos na 3ª rodada (deploy ~18:01): `include=tags` passa a devolver as 7 tags do board (5 do template + 2 de teste), e os dropdowns de tag dos três conectores preenchem; `include=conditions` deixa de dar 500 e devolve `conditions: []` (o template não tem condicionais de campo).
 
 ## Limitações conhecidas (valem para os três)
 
@@ -202,8 +202,8 @@ Detalhadas, com o contorno usado e a proposta para a API, em [v1-contract.md §9
 
 ## Próximos passos
 
-1. **Testar n8n, Zapier e Make contra a API real** com uma chave de teste (`crm:read` e `crm:write`) de uma organização de demonstração.
-2. **Make:** testar contra a API real, rodar os cenários de `make/docs/test-scenarios.md` e pedir a revisão (o app privado `perpetuus-crm-ej2gdv` já foi criado e enviado em 17/11/2026; ainda falta o logo 512×512).
+1. ~~**Testar n8n, Zapier e Make contra a API real**~~ (feito em 17/11/2026, três rodadas; ver seção de testes).
+2. **Make:** rodar no editor os cenários de `make/docs/test-scenarios.md` e pedir a revisão (o app privado `perpetuus-crm-ej2gdv` já foi criado e enviado em 17/11/2026; o harness já cobriu as requisições; ainda falta o logo 512×512).
 3. **Webhooks de saída na API:** inscrição por API, entrega assinada (HMAC), retry e log. Torna os gatilhos instantâneos no Zapier, Make e n8n e é obrigatório para a Pluga.
 4. **OAuth 2.1 na API:** login "Conectar" sem colar chave no Zapier e no Make, e pré-requisito para Pipedream, ChatGPT e o diretório do Claude.
 5. **Pipedream** (pedido ao programa App Partners, depende do OAuth), **Activepieces** (piece enviado como PR ao repositório deles) e **Pluga** (depende dos webhooks).
@@ -214,5 +214,5 @@ Detalhadas, com o contorno usado e a proposta para a API, em [v1-contract.md §9
 - ~~Confirmar o e-mail de autor~~ (n8n usa `luis.santos@perpetuus.com.br` desde a 0.1.2).
 - Gravar o vídeo da revisão manual do n8n.
 - Logo PNG 256×256 para o Zapier e 512×512 para o Make e as demais listagens.
-- Organização de demonstração com dados fictícios e usuário de revisão sem autenticação em dois fatores.
-- Chave de teste para validar os conectores contra a API real.
+- ~~Organização de demonstração~~ (feita em 17/11/2026: `perpetuus-demo`, plano DOMINION). Ainda falta o usuário de revisão sem autenticação em dois fatores.
+- ~~Chave de teste para validar os conectores contra a API real~~ (feita; `crm:read` e `crm:write`, usada nas três rodadas).
