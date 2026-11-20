@@ -6,6 +6,7 @@
 //   2. component IDs, connection/RPC/group references and the module type rules of the Make
 //      app review (limit, pagination, epoch, trigger order, universal module, sanitization, errors);
 //   3. input and output field names match docs/v1-contract.md (interface = output = samples);
+//      instant triggers: dedicated webhooks with attach/detach on /webhook-subscriptions;
 //   4. IML expressions are balanced and only read declared parameters;
 //   5. no secrets in make/;
 //   6. with Ajv 8 installed (npm ci in make/), every file against Make's official editor schemas
@@ -157,6 +158,8 @@ const OUT = {
   card: tableKeys('4.2'),
   task: tableKeys('4.3'),
   event: tableKeys('4.4'),
+  instant: tableKeys('5.8'),
+  message: tableKeys('5.9').filter((k) => !['eventAt', 'eventId'].includes(k)),
   upsert: ['created', 'matchedBy', 'otherMatchIds'],
 };
 for (const key of OUT.upsert) {
@@ -180,7 +183,15 @@ const OPS = {
   createTask: { op: 'createTask', type: 'action', inputs: tableKeys('6.5'), output: OUT.task },
   searchContacts: { op: 'findContact', type: 'search', inputs: entradaKeys('7.1', IGNORE_7), output: OUT.contact },
   searchCards: { op: 'findCard', type: 'search', inputs: entradaKeys('7.2', IGNORE_7), output: OUT.card },
+  // Instant triggers (§5.7): inputs live on the webhook parameters, outputs add §5.8.
+  watchNewCardsInstant: { op: 'newCard', type: 'instant_trigger', inputs: entradaKeys('5.2'), output: [...OUT.card, ...OUT.event, 'webhookEventId'], events: ['card.created'] },
+  watchCardsEnteredPhaseInstant: { op: 'cardEnteredPhase', type: 'instant_trigger', inputs: entradaKeys('5.3'), output: [...OUT.card, ...OUT.event, ...OUT.instant], events: ['card.created', 'card.phase_changed'] },
+  watchNewContactsInstant: { op: 'newContact', type: 'instant_trigger', inputs: [], output: [...OUT.contact, ...OUT.event, 'webhookEventId'], events: ['contact.created'] },
+  watchNewMessages: { op: 'newMessage', type: 'instant_trigger', inputs: entradaKeys('5.9'), output: [...OUT.message, ...OUT.event, 'webhookEventId'], events: ['message.received'] },
 };
+for (const key of ['webhookEventId', 'previousPhaseId', 'previousPhaseName']) {
+  if (!OUT.instant.includes(key)) fail('docs/v1-contract.md', `§5.8 does not define \`${key}\``);
+}
 if (OPS.watchNewContacts.inputs.length === 0 && !/\| Entrada \| nenhuma \|/.test(section('5.4'))) {
   fail('docs/v1-contract.md', '§5.4 New Contact is expected to have no input');
 }
@@ -198,6 +209,7 @@ const JS_RESERVED = new Set('break case catch class const continue debugger defa
 const CODE_SUFFIX = {
   communication: 'communication', params: 'params', common: 'common', epoch: 'epoch',
   staticParams: 'static-params', mappableParams: 'mappable-params', interface: 'interface', samples: 'samples', scope: 'scope',
+  attach: 'attach', detach: 'detach',
 };
 
 if (!existsSync(join(APP_DIR, 'makecomapp.json'))) {
@@ -321,6 +333,41 @@ for (const [id, meta] of Object.entries(rpcs)) {
   }
 }
 
+// ─── Webhooks (dedicated, attach/detach) ─────────────────────────────────────
+
+const webhooks = components.webhook ?? {};
+const hookUse = new Map();
+for (const m of Object.values(components.module ?? {})) if (m?.webhook) hookUse.set(m.webhook, (hookUse.get(m.webhook) ?? 0) + 1);
+for (const [id, meta] of Object.entries(webhooks)) {
+  const where = `webhook ${id}`;
+  const files = meta.codeFiles ?? {};
+  if (meta.connection !== 'perpetuus') fail(where, 'webhook must use the perpetuus connection');
+  if (meta.webhookType !== 'web') fail(where, 'webhookType must be "web" (dedicated, attached through the API)');
+  if (!hookUse.get(id)) fail(where, 'webhook is not used by any instant_trigger module');
+  for (const code of ['communication', 'params', 'attach', 'detach']) if (!files[code]) fail(where, `codeFiles.${code} is required`);
+  if (!files.attach || !files.detach || !files.communication || !files.params) continue;
+  const attach = readJson(files.attach) ?? {};
+  const detach = readJson(files.detach) ?? {};
+  const comm = readJson(files.communication) ?? {};
+  const params = readJson(files.params) ?? [];
+  [attach, detach, comm, params].forEach((v) => checkIml(where, v));
+  if (attach.method !== 'POST' || attach.url !== '/webhook-subscriptions') fail(where, 'attach must POST /webhook-subscriptions');
+  if (attach.body?.url !== '{{webhook.url}}') fail(where, 'attach must send url = {{webhook.url}}');
+  if (attach.body?.origin !== 'make') fail(where, 'attach must send origin "make"');
+  if (!Array.isArray(attach.body?.events) || !attach.body.events.length) fail(where, 'attach must send the events');
+  if (attach.response?.data?.externalHookId !== '{{body.data.id}}') fail(where, 'attach must keep response.data.externalHookId = {{body.data.id}}');
+  if (detach.method !== 'DELETE' || detach.url !== '/webhook-subscriptions/{{webhook.externalHookId}}') fail(where, 'detach must DELETE /webhook-subscriptions/{{webhook.externalHookId}}');
+  if (!/404/.test(detach.response?.valid ?? '')) fail(where, 'detach must accept 404 (subscription already gone)');
+  if (!/body\.type/.test(comm.condition ?? '')) fail(where, 'communication.condition must filter on body.type (skips ping and other events)');
+  if (!comm.output || typeof comm.output !== 'object') fail(where, 'communication.output must project the canonical object');
+  const declared = allParamNames(params);
+  for (const read of [...paramReads(attach), ...paramReads(comm)]) if (!declared.has(read)) fail(where, `reads undeclared parameters.${read}`);
+  for (const ref of rpcRefs(params)) {
+    if (!rpcs[ref]) { fail(where, `references missing rpc://${ref}`); continue; }
+    for (const read of rpcReads[ref]) if (!declared.has(read)) fail(where, `rpc://${ref} reads parameters.${read}, which this webhook does not declare`);
+  }
+}
+
 // ─── Modules ─────────────────────────────────────────────────────────────────
 
 const modules = components.module ?? {};
@@ -339,13 +386,19 @@ const lastRequest = (comm) => (Array.isArray(comm) ? comm[comm.length - 1] : com
 for (const [id, meta] of Object.entries(modules)) {
   const where = `module ${id}`;
   const files = meta.codeFiles ?? {};
-  const comm = readJson(files.communication);
-  const staticParams = readJson(files.staticParams) ?? [];
-  const mappableParams = readJson(files.mappableParams) ?? [];
+  const comm = files.communication ? readJson(files.communication) : undefined;
+  const staticParams = (files.staticParams && readJson(files.staticParams)) ?? [];
+  const mappableParams = (files.mappableParams && readJson(files.mappableParams)) ?? [];
   const iface = readJson(files.interface) ?? [];
   const samples = readJson(files.samples) ?? {};
-  const params = [...staticParams, ...mappableParams];
-  const declared = new Set([...allParamNames(staticParams), ...allParamNames(mappableParams)]);
+  // An instant trigger reads its inputs from the parameters of its dedicated webhook.
+  const instant = meta.moduleType === 'instant_trigger';
+  const hook = instant ? webhooks[meta.webhook] : undefined;
+  if (instant && !hook) fail(where, `instant_trigger needs an existing webhook (got ${meta.webhook ?? 'none'})`);
+  const hookParams = hook ? readJson(hook.codeFiles.params) ?? [] : [];
+  const hookComm = hook ? readJson(hook.codeFiles.communication) ?? {} : undefined;
+  const params = [...staticParams, ...mappableParams, ...hookParams];
+  const declared = new Set([...allParamNames(staticParams), ...allParamNames(mappableParams), ...allParamNames(hookParams)]);
   [comm, staticParams, mappableParams, iface].forEach((v) => checkIml(where, v));
 
   if (!meta.label || !meta.description) fail(where, 'label and description are required');
@@ -371,7 +424,7 @@ for (const [id, meta] of Object.entries(modules)) {
 
   // Interface, output and samples.
   const ifaceNames = names(iface);
-  const output = lastRequest(comm)?.response?.output;
+  const output = instant ? hookComm?.output : lastRequest(comm)?.response?.output;
   if (meta.moduleType !== 'universal') {
     if (!output || typeof output !== 'object') fail(where, 'response.output must project the canonical object');
     else if (!sameSet(Object.keys(output), ifaceNames)) {
@@ -401,6 +454,13 @@ for (const [id, meta] of Object.entries(modules)) {
     if (!strings(comm?.qs ?? {}).some((s) => s.includes('data.lastDate'))) fail(where, 'trigger must filter from data.lastDate');
     if (!comm?.pagination) fail(where, 'trigger needs pagination');
     if (comm?.response?.limit !== '{{parameters.limit}}') fail(where, 'trigger response.limit must be {{parameters.limit}}');
+  } else if (instant) {
+    if (mappableParams.length || files.epoch) fail(where, 'instant triggers take no mappable parameters and no epoch');
+    if (requests.some((r) => r && (r.pagination || r.response?.iterate || r.url))) fail(where, 'instant trigger communication must not call the API (the webhook delivers the data)');
+    if (hookUse.get(meta.webhook) > 1) fail(where, `webhook ${meta.webhook} is dedicated and must belong to one module`);
+    const events = hook ? readJson(hook.codeFiles.attach)?.body?.events : undefined;
+    if (OPS[id] && !(Array.isArray(events) && sameSet(events, OPS[id].events))) fail(where, `webhook must subscribe to ${OPS[id].events.join(', ')} (§5.7)`);
+    for (const e of OPS[id]?.events ?? []) if (!(hookComm?.condition ?? '').includes(`'${e}'`)) fail(where, `webhook condition must accept ${e} (and skip ping)`);
   } else if (meta.moduleType === 'search') {
     if (!limitParam || limitParam.required || limitParam.advanced) fail(where, 'search needs an optional, non-advanced limit parameter');
     if (!comm?.pagination) fail(where, 'search needs pagination');
@@ -469,7 +529,7 @@ for (const file of walk(MAKE_DIR)) {
 // ─── Official editor schemas (optional, needs Ajv 8) ─────────────────────────
 
 const SCHEMA_FOR = {
-  communication: 'api.json', params: 'parameters.json', staticParams: 'parameters.json', mappableParams: 'parameters.json',
+  communication: 'api.json', attach: 'api.json', detach: 'api.json', params: 'parameters.json', staticParams: 'parameters.json', mappableParams: 'parameters.json',
   interface: 'parameters.json', samples: 'samples.json', epoch: 'epoch.json', scope: 'scope.json', common: 'common.json',
 };
 let Ajv;
@@ -524,7 +584,7 @@ if (Ajv) {
 
 const counts = Object.fromEntries(Object.entries(components).map(([k, v]) => [k, Object.keys(v ?? {}).length]));
 if (!args.has('--quiet')) {
-  console.log(`Perpetuus CRM Make app: ${counts.module} modules, ${counts.rpc} RPCs, ${counts.connection} connection, ${listed.size} files`);
+  console.log(`Perpetuus CRM Make app: ${counts.module} modules, ${counts.webhook} webhooks, ${counts.rpc} RPCs, ${counts.connection} connection, ${listed.size} files`);
   console.log(`Contract fields checked for ${Object.keys(OPS).length} operations; editor schemas: ${Ajv ? `${schemaChecked} files/requests` : 'skipped'}`);
   for (const note of notes) console.log(`note: ${note}`);
 }

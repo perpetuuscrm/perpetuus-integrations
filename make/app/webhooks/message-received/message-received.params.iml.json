@@ -1,0 +1,10 @@
+[
+    {
+        "name": "boardId",
+        "type": "select",
+        "label": "Board",
+        "required": false,
+        "options": "rpc://listBoards",
+        "help": "Only messages of conversations linked to a card of this board. Leave it empty to watch every conversation."
+    }
+]

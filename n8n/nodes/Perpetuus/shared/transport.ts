@@ -1,7 +1,7 @@
 import { MAX_RATE_LIMIT_RETRIES, MAX_RATE_LIMIT_WAIT_SECONDS } from './constants';
 import type { Query } from './query';
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT';
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 export interface RawResponse {
 	statusCode: number;

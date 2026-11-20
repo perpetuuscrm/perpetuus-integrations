@@ -1,0 +1,19 @@
+{
+    "url": "/webhook-subscriptions",
+    "method": "POST",
+    "body": {
+        "url": "{{webhook.url}}",
+        "events": [
+            "card.created",
+            "card.phase_changed"
+        ],
+        "boardId": "{{parameters.boardId}}",
+        "origin": "make",
+        "description": "Make: Watch cards entering a phase (instant)"
+    },
+    "response": {
+        "data": {
+            "externalHookId": "{{body.data.id}}"
+        }
+    }
+}

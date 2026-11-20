@@ -10,8 +10,11 @@ const perform = (z, bundle) => pollCards(createClient(z), bundle.inputData, 'car
 module.exports = {
   key: 'cardEnteredPhase',
   noun: 'Card',
+  // Hidden since 1.1.0: existing Zaps keep this polling trigger; new Zaps use the instant
+  // (REST Hook) trigger in triggers/instant.js.
   display: {
-    label: 'Card Entered Phase',
+    label: 'Card Entered Phase (Polling)',
+    hidden: true,
     description:
       'Triggers when a card enters a phase of a board, including the first phase of a new card.',
   },

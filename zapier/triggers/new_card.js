@@ -10,8 +10,11 @@ const perform = (z, bundle) => pollCards(createClient(z), bundle.inputData, 'new
 module.exports = {
   key: 'newCard',
   noun: 'Card',
+  // Hidden since 1.1.0: existing Zaps keep this polling trigger; new Zaps use the instant
+  // (REST Hook) trigger in triggers/instant.js.
   display: {
-    label: 'New Card',
+    label: 'New Card (Polling)',
+    hidden: true,
     description: 'Triggers when a new card is created in a board.',
   },
   operation: {

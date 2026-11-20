@@ -54,6 +54,10 @@ blocked for external developers and needs a separate request to Make.
 
 | Group | Module (ID) | Label | Type | Contract | REST calls |
 |-------|-------------|-------|------|----------|------------|
+| Cards | `watchNewCardsInstant` | Watch new cards (instant) | Instant trigger (webhook `cardCreated`) | `newCard` | attach/detach on `/webhook-subscriptions` (`card.created`) |
+| Cards | `watchCardsEnteredPhaseInstant` | Watch cards entering a phase (instant) | Instant trigger (webhook `cardEnteredPhase`) | `cardEnteredPhase` | attach/detach (`card.created`, `card.phase_changed`) |
+| Contacts | `watchNewContactsInstant` | Watch new contacts (instant) | Instant trigger (webhook `contactCreated`) | `newContact` | attach/detach (`contact.created`) |
+| Conversations | `watchNewMessages` | Watch new messages | Instant trigger (webhook `messageReceived`) | `newMessage` | attach/detach (`message.received`, `chat:read`) |
 | Cards | `watchNewCards` | Watch new cards | Trigger (polling) | `newCard` | `GET /boards/{boardId}/cards` |
 | Cards | `watchCardsEnteredPhase` | Watch cards entering a phase | Trigger (polling) | `cardEnteredPhase` | `GET /boards/{boardId}/cards` |
 | Contacts | `watchNewContacts` | Watch new contacts | Trigger (polling) | `newContact` | `GET /contacts` |
@@ -81,6 +85,20 @@ required; selects, numbers, dates, switches and lists get the matching Make type
 mapped from a previous module, the fields cannot load: use **Other custom fields** (`fields`, slug
 and value pairs). A custom field whose slug equals one of the module's own inputs (`title`, `value`,
 `description`…) is only reachable through **Other custom fields**.
+
+### Instant triggers
+
+The instant triggers use **dedicated webhooks** (`webhookType: web`). When the user creates the
+webhook in the trigger, Make calls the webhook **attach**: `POST /webhook-subscriptions` with
+`{ url: {{webhook.url}}, events, boardId, origin: "make" }`, keeping the subscription id as
+`externalHookId`. Deleting the webhook calls **detach**: `DELETE /webhook-subscriptions/{id}`
+(404 accepted). The webhook `condition` drops `ping` deliveries, other events and, for cards
+entering a phase, other phases; the `output` maps the API payload to the same fields as the
+polling module plus `webhookEventId` (and `previousPhaseId`/`previousPhaseName`).
+
+Make does not expose the raw request body to custom apps, so the `X-Perpetuus-Signature` HMAC
+cannot be checked here; the webhook relies on Make's unique, unguessable URL. The polling modules
+are unchanged and remain available (Task Completed is polling only).
 
 ## Connection
 

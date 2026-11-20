@@ -1,0 +1,17 @@
+{
+    "url": "/webhook-subscriptions",
+    "method": "POST",
+    "body": {
+        "url": "{{webhook.url}}",
+        "events": [
+            "contact.created"
+        ],
+        "origin": "make",
+        "description": "Make: Watch new contacts (instant)"
+    },
+    "response": {
+        "data": {
+            "externalHookId": "{{body.data.id}}"
+        }
+    }
+}

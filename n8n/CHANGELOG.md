@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 (unreleased)
+
+- **Perpetuus Trigger v2 is instant (webhooks).** New nodes subscribe to the Perpetuus webhook API when the workflow is activated (`POST /webhook-subscriptions`, `origin: n8n`) and unsubscribe when it is deactivated. Events: New Card, Card Entered Phase, New Contact and the new **New Message** (needs the `chat:read` scope). Every delivery is checked against `X-Perpetuus-Signature` (HMAC-SHA256 with the subscription secret, 5-minute timestamp tolerance); unsigned or tampered requests get 401. The output is the same as the polling trigger, plus `webhookEventId` (and `previousPhaseId`/`previousPhaseName` for Card Entered Phase).
+- Existing workflows keep working: nodes created before 0.2.0 stay on Perpetuus Trigger **v1** (polling, unchanged).
+- New **Perpetuus Polling Trigger** node with the polling events (including Task Completed, which has no webhook event yet) for instances Perpetuus cannot reach over public HTTPS.
+- Contact type mapping also accepts `person`/`company`.
+
 ## 0.1.3 (2026-11-17)
 
 - Fix "Class could not be found" when installing on instances that have an older `n8n-workflow` in `~/.n8n/nodes/node_modules` (left there by community packages installed under n8n 1.x). The community package resolves that copy before n8n's own, and versions before `NodeConnectionTypes` existed made the node constructors throw. The nodes now declare their `main` inputs and outputs as string literals, so they load with any `n8n-workflow` version. Regression test added.

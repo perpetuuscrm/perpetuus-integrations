@@ -214,6 +214,70 @@
                     "samples": "modules/make-api-call/make-api-call.samples.iml.json",
                     "scope": null
                 }
+            },
+            "watchNewCardsInstant": {
+                "label": "Watch new cards (instant)",
+                "description": "Triggers instantly when a new card is created on a board.",
+                "moduleType": "instant_trigger",
+                "actionCrud": null,
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhook": "cardCreated",
+                "codeFiles": {
+                    "communication": "modules/watch-new-cards-instant/watch-new-cards-instant.communication.iml.json",
+                    "staticParams": "modules/watch-new-cards-instant/watch-new-cards-instant.static-params.iml.json",
+                    "interface": "modules/watch-new-cards-instant/watch-new-cards-instant.interface.iml.json",
+                    "samples": "modules/watch-new-cards-instant/watch-new-cards-instant.samples.iml.json",
+                    "scope": null
+                }
+            },
+            "watchCardsEnteredPhaseInstant": {
+                "label": "Watch cards entering a phase (instant)",
+                "description": "Triggers instantly when a card enters a phase of a board, including new cards in the first phase. Every move triggers, also quick moves through several phases.",
+                "moduleType": "instant_trigger",
+                "actionCrud": null,
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhook": "cardEnteredPhase",
+                "codeFiles": {
+                    "communication": "modules/watch-cards-entered-phase-instant/watch-cards-entered-phase-instant.communication.iml.json",
+                    "staticParams": "modules/watch-cards-entered-phase-instant/watch-cards-entered-phase-instant.static-params.iml.json",
+                    "interface": "modules/watch-cards-entered-phase-instant/watch-cards-entered-phase-instant.interface.iml.json",
+                    "samples": "modules/watch-cards-entered-phase-instant/watch-cards-entered-phase-instant.samples.iml.json",
+                    "scope": null
+                }
+            },
+            "watchNewContactsInstant": {
+                "label": "Watch new contacts (instant)",
+                "description": "Triggers instantly when a new contact is created.",
+                "moduleType": "instant_trigger",
+                "actionCrud": null,
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhook": "contactCreated",
+                "codeFiles": {
+                    "communication": "modules/watch-new-contacts-instant/watch-new-contacts-instant.communication.iml.json",
+                    "staticParams": "modules/watch-new-contacts-instant/watch-new-contacts-instant.static-params.iml.json",
+                    "interface": "modules/watch-new-contacts-instant/watch-new-contacts-instant.interface.iml.json",
+                    "samples": "modules/watch-new-contacts-instant/watch-new-contacts-instant.samples.iml.json",
+                    "scope": null
+                }
+            },
+            "watchNewMessages": {
+                "label": "Watch new messages",
+                "description": "Triggers instantly when a customer sends a message in a conversation. The API key needs the chat:read scope.",
+                "moduleType": "instant_trigger",
+                "actionCrud": null,
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhook": "messageReceived",
+                "codeFiles": {
+                    "communication": "modules/watch-new-messages/watch-new-messages.communication.iml.json",
+                    "staticParams": "modules/watch-new-messages/watch-new-messages.static-params.iml.json",
+                    "interface": "modules/watch-new-messages/watch-new-messages.interface.iml.json",
+                    "samples": "modules/watch-new-messages/watch-new-messages.samples.iml.json",
+                    "scope": null
+                }
             }
         },
         "function": {},
@@ -282,7 +346,56 @@
                 }
             }
         },
-        "webhook": {},
+        "webhook": {
+            "cardCreated": {
+                "label": "New card",
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhookType": "web",
+                "codeFiles": {
+                    "communication": "webhooks/card-created/card-created.communication.iml.json",
+                    "params": "webhooks/card-created/card-created.params.iml.json",
+                    "attach": "webhooks/card-created/card-created.attach.iml.json",
+                    "detach": "webhooks/card-created/card-created.detach.iml.json"
+                }
+            },
+            "cardEnteredPhase": {
+                "label": "Card entered phase",
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhookType": "web",
+                "codeFiles": {
+                    "communication": "webhooks/card-entered-phase/card-entered-phase.communication.iml.json",
+                    "params": "webhooks/card-entered-phase/card-entered-phase.params.iml.json",
+                    "attach": "webhooks/card-entered-phase/card-entered-phase.attach.iml.json",
+                    "detach": "webhooks/card-entered-phase/card-entered-phase.detach.iml.json"
+                }
+            },
+            "contactCreated": {
+                "label": "New contact",
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhookType": "web",
+                "codeFiles": {
+                    "communication": "webhooks/contact-created/contact-created.communication.iml.json",
+                    "params": "webhooks/contact-created/contact-created.params.iml.json",
+                    "attach": "webhooks/contact-created/contact-created.attach.iml.json",
+                    "detach": "webhooks/contact-created/contact-created.detach.iml.json"
+                }
+            },
+            "messageReceived": {
+                "label": "New message",
+                "connection": "perpetuus",
+                "altConnection": null,
+                "webhookType": "web",
+                "codeFiles": {
+                    "communication": "webhooks/message-received/message-received.communication.iml.json",
+                    "params": "webhooks/message-received/message-received.params.iml.json",
+                    "attach": "webhooks/message-received/message-received.attach.iml.json",
+                    "detach": "webhooks/message-received/message-received.detach.iml.json"
+                }
+            }
+        },
         "endpoint": {}
     },
     "origins": [
@@ -347,6 +460,22 @@
                     {
                         "local": "makeApiCall",
                         "remote": "makeApiCall"
+                    },
+                    {
+                        "local": "watchNewCardsInstant",
+                        "remote": "watchNewCardsInstant"
+                    },
+                    {
+                        "local": "watchCardsEnteredPhaseInstant",
+                        "remote": "watchCardsEnteredPhaseInstant"
+                    },
+                    {
+                        "local": "watchNewContactsInstant",
+                        "remote": "watchNewContactsInstant"
+                    },
+                    {
+                        "local": "watchNewMessages",
+                        "remote": "watchNewMessages"
                     }
                 ],
                 "rpc": [
@@ -380,7 +509,24 @@
                     }
                 ],
                 "function": [],
-                "webhook": [],
+                "webhook": [
+                    {
+                        "local": "cardCreated",
+                        "remote": "cardCreated"
+                    },
+                    {
+                        "local": "cardEnteredPhase",
+                        "remote": "cardEnteredPhase"
+                    },
+                    {
+                        "local": "contactCreated",
+                        "remote": "contactCreated"
+                    },
+                    {
+                        "local": "messageReceived",
+                        "remote": "messageReceived"
+                    }
+                ],
                 "endpoint": []
             }
         }

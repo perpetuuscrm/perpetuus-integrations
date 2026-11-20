@@ -237,8 +237,8 @@ Todo item emitido por um gatilho tem, além do objeto canônico:
 
 ## 5. Gatilhos (polling)
 
-Webhooks virão depois (ver Lacunas). Na v1 todos os gatilhos são polling com **cursor por
-carimbo de tempo** e um conjunto pequeno de chaves já vistas no carimbo de fronteira.
+Os gatilhos de polling usam **cursor por carimbo de tempo** e um conjunto pequeno de chaves já
+vistas no carimbo de fronteira. As versões instantâneas (webhooks) estão na seção 5.7.
 
 ### 5.1 Algoritmo comum
 
@@ -358,6 +358,98 @@ operador só vê as tarefas em que é responsável.
   specific date", "All" e os últimos 300 itens; o `limit` (obrigatório, padrão 10) limita os
   bundles por execução e o restante sai no ciclo seguinte. Os campos `eventId`/`eventAt` também saem
   no bundle.
+
+### 5.7 Gatilhos instantâneos (webhooks)
+
+Desde o PRD-010 (webhooks de saída v1) a API entrega eventos assinados. Os gatilhos de card,
+fase e contato ganharam versões **instantâneas** nas três plataformas, com o polling mantido
+para quem já usa e onde a plataforma precisa (n8n sem URL pública, Task Completed):
+
+| Gatilho | Eventos da API | Entrada | Filtro no conector |
+|---------|----------------|---------|--------------------|
+| `newCard` | `card.created` | `boardId` (obrigatório, vai na inscrição) | — |
+| `cardEnteredPhase` | `card.created` + `card.phase_changed` | `boardId` (obrigatório), `phaseId` (opcional) | fase: `toPhase` na mudança, `currentPhase` na criação |
+| `newContact` | `contact.created` | nenhuma | — |
+| `newMessage` | `message.received` (escopo `chat:read`) | `boardId` (opcional) | — |
+
+Ciclo de vida:
+
+1. **Inscrever** ao ligar o workflow/Zap/cenário: `POST /webhook-subscriptions` com
+   `{ url, events, boardId?, origin, description }` (`origin` = `n8n`, `zapier` ou `make`). A
+   resposta (`{ data }`) traz `id` e o `secret` (`whsec_…`, mostrado uma vez).
+2. **Receber**: corpo `{ id: "evt_…", type, version: "1", timestamp, tenant, data }` com os
+   cabeçalhos `X-Perpetuus-Event`, `X-Perpetuus-Delivery`, `X-Perpetuus-Timestamp` e
+   `X-Perpetuus-Signature: sha256=HMAC_SHA256(secret, "<timestamp>.<corpo cru>")`. O n8n e o
+   Zapier conferem a assinatura (comparação em tempo constante, tolerância de 300 s no
+   timestamp) e descartam o que não bate; o Make não expõe o corpo cru, então confia na URL
+   única do webhook. `ping` e eventos de outro tipo/fase são confirmados sem disparar nada.
+3. **Desinscrever** ao desligar: `DELETE /webhook-subscriptions/{id}` (404 conta como removida).
+   Se o receptor responder 410 Gone, a API apaga a inscrição sozinha.
+
+O `data` é a projeção pública da API (card com `board`, `currentPhase`, `contact`, `tags`,
+`fields`; contato com `customFields`). O conector mapeia com as mesmas funções do polling
+(`toCard`/`toContact`), então a saída, o `eventId` e o `eventAt` são **iguais** aos da seção 5,
+mais os campos da 5.8. A reentrega (retry/reenvio) mantém o `id` do evento; o `eventId`
+canônico deduplica onde a plataforma deduplica.
+
+Notas por plataforma:
+
+- **n8n**: `Perpetuus Trigger` v2 (padrão dos nodes novos) é webhook (`webhookMethods`
+  `checkExists`/`create`/`delete`; id e secret em `getWorkflowStaticData('node')`). Nodes
+  criados antes continuam na v1 (polling, sem mudança). O polling segue como node próprio,
+  `Perpetuus Polling Trigger`, para Task Completed e para n8n que a API não alcança por HTTPS.
+- **Zapier**: REST Hooks em chaves novas (`newCardInstant`, `cardEnteredPhaseInstant`,
+  `newContactInstant`, `newMessage`), porque trocar polling → hook numa chave existente quebra os
+  Zaps. As chaves de polling (`newCard`, `cardEnteredPhase`, `newContact`) ficam ocultas e
+  continuam funcionando. `performList` usa os registros reais mais recentes (as mesmas rotas do
+  polling) e, sem registros, `GET /webhook-subscriptions/samples?event=…`; New Message usa só os
+  samples.
+- **Make**: webhooks dedicados com attach/detach (`cardCreated`, `cardEnteredPhase`,
+  `contactCreated`, `messageReceived`) e módulos `instant_trigger` novos
+  (`watchNewCardsInstant`, `watchCardsEnteredPhaseInstant`, `watchNewContactsInstant`,
+  `watchNewMessages`). Os módulos de polling continuam iguais.
+
+### 5.8 Campos extras dos gatilhos instantâneos
+
+| Chave | Tipo | Uso |
+|-------|------|-----|
+| `webhookEventId` | string | `id` do envelope (`evt_…`), igual em retries e reenvios. Todos os gatilhos instantâneos. |
+| `previousPhaseId` | string \| null | Fase de origem em `card.phase_changed` (`fromPhase`); `null` na criação. Só Card Entered Phase. |
+| `previousPhaseName` | string \| null | Nome da fase de origem. Só Card Entered Phase. |
+
+### 5.9 New Message (`newMessage`)
+
+| Item | Valor |
+|------|-------|
+| Entrada | `boardId` (opcional; só conversas ligadas a um card do board) |
+| Evento | `message.received` (só webhook; não há polling) |
+| `eventAt` | `sentAt` |
+| `eventId` | `{messageId}` (Zapier: `id` = `eventId`, a mensagem também sai em `messageId`) |
+| Saída | Message (abaixo) + `eventId` + `eventAt` + `webhookEventId` |
+| Escopo | `chat:read` |
+
+| Campo | Tipo | Origem (`data`) |
+|-------|------|-----------------|
+| `id` | string | `message.id` |
+| `content` | string | `message.content` |
+| `messageType` | string \| null | `message.messageType` |
+| `sentAt` | ISO string \| null | `message.createdAt` |
+| `senderId` | string \| null | `message.sender.id` |
+| `senderName` | string \| null | `message.sender.name` |
+| `senderType` | string \| null | `message.sender.type` |
+| `attachments` | array | `message.attachments[]` (`id`, `fileType`, `url`) |
+| `conversationId` | string \| null | `conversation.id` |
+| `conversationStatus` | string \| null | `conversation.status` |
+| `inboxId` | string \| null | `conversation.inboxId` |
+| `contactId` | string \| null | `contact.documentId` |
+| `contactName` | string \| null | `contact.name` |
+| `contactEmail` | string \| null | `contact.email` |
+| `contactPhone` | string \| null | `contact.phone` |
+| `cardId` | string \| null | `card.documentId` |
+| `cardTitle` | string \| null | `card.title` |
+| `boardId` | string \| null | `card.board.documentId` |
+| `phaseId` | string \| null | `card.currentPhase.documentId` |
+| `phaseName` | string \| null | `card.currentPhase.name` |
 
 ---
 
@@ -580,7 +672,7 @@ nenhuma rota foi inventada.
 
 | # | Lacuna | Contorno na v1 | Proposta para o backend |
 |---|--------|----------------|-------------------------|
-| 1 | Sem webhooks/REST Hooks para gatilhos instantâneos | Polling com cursor (seção 5) | `POST/DELETE /webhook-subscriptions` (`{ event, targetUrl, filters }`) assinadas com HMAC, reaproveitando o emissor de eventos das automações (`card.created`, `card.phase_changed`, `contact.created`, `task.completed`) |
+| 1 | ~~Sem webhooks/REST Hooks para gatilhos instantâneos~~ **Resolvida (PRD-010, 20/11/2026)** | Gatilhos instantâneos (seção 5.7); polling mantido como alternativa | Falta `task.completed` como evento de webhook (Task Completed segue em polling) |
 | 2 | Sem histórico de movimentação consultável | `currentPhaseEnteredAt` como cursor; perde fases intermediárias entre ciclos | `GET /boards/{boardId}/card-movements?since=&phaseId=` lendo `movementHistory` (from, to, movedAt, movedBy) com paginação |
 | 3 | `completedAt` só é carimbado na primeira conclusão; reabrir não limpa | Uma tarefa reaberta e concluída de novo não dispara | Limpar `completedAt` ao sair de status concluído e carimbar de novo ao concluir |
 | 4 | `GET /tasks` devolve array puro com `limit`/`offset`, sem `meta.pagination` e sem teto de `limit` | Conector pagina por `offset` e para na página curta | Padronizar `{ data, meta.pagination }` com `pageSize` ≤ 100, como cards e contatos |
@@ -600,4 +692,4 @@ nenhuma rota foi inventada.
 - Enviar WhatsApp ou e-mail, campanhas, conversas.
 - Qualquer exclusão (`DELETE`).
 - Atualizar card (campos/valor/responsáveis) além de mover fase e adicionar tags.
-- Gatilhos instantâneos (dependem da lacuna 1).
+- Task Completed instantâneo (a API ainda não emite `task.completed` nos webhooks).

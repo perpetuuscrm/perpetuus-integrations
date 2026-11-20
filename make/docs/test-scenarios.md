@@ -59,6 +59,19 @@ Run each trigger a second time without new data: it must return **no bundles** (
 Then move the card back to *Proposal* and again to *Won* and run 1B-3: the card must trigger again
 (new `phaseEnteredAt`).
 
+**1C. Instant triggers** (one scenario each, turned on before 1A)
+
+| Scenario | Trigger | Webhook settings | Expected after 1A |
+|----------|---------|------------------|-------------------|
+| 1C-1 | **Watch new cards (instant)** | Board *Make review* | Runs right after module 4 with the new card |
+| 1C-2 | **Watch cards entering a phase (instant)** | Board *Make review*, Phase empty | One run per phase: the creation (first phase), *Proposal* and *Won*, with `previousPhaseName` |
+| 1C-3 | **Watch cards entering a phase (instant)** | Board *Make review*, Phase *Won* | Only the move to *Won* |
+| 1C-4 | **Watch new contacts (instant)** | none | Runs right after module 2 with the contact |
+| 1C-5 | **Watch new messages** | Board empty (key with `chat:read`) | Runs when the test contact sends a WhatsApp message |
+
+Creating the webhook must create a subscription in Perpetuus (**Settings → Webhooks**, origin
+*Make*); deleting the webhook in Make must remove it.
+
 ## Scenario 2: searches with pagination (end of separate routes)
 
 | # | Module | Settings | Expected |

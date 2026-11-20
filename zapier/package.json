@@ -1,6 +1,6 @@
 {
   "name": "perpetuus-zapier",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Official Zapier integration for Perpetuus CRM: contacts, cards, phases, tags and tasks.",
   "private": true,
   "license": "MIT",

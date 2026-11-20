@@ -130,8 +130,9 @@ function relationList(value: unknown): Raw[] {
 }
 
 export function contactTypeFromApi(value: unknown): 'person' | 'company' | null {
-	if (value === 'pessoa') return 'person';
-	if (value === 'empresa') return 'company';
+	// The REST API stores pessoa/empresa; webhook samples may already use person/company.
+	if (value === 'pessoa' || value === 'person') return 'person';
+	if (value === 'empresa' || value === 'company') return 'company';
 	return null;
 }
 

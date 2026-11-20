@@ -1,0 +1,18 @@
+{
+    "url": "/webhook-subscriptions",
+    "method": "POST",
+    "body": {
+        "url": "{{webhook.url}}",
+        "events": [
+            "card.created"
+        ],
+        "boardId": "{{parameters.boardId}}",
+        "origin": "make",
+        "description": "Make: Watch new cards (instant)"
+    },
+    "response": {
+        "data": {
+            "externalHookId": "{{body.data.id}}"
+        }
+    }
+}

@@ -1,0 +1,22 @@
+{
+    "id": "ct7h2k9q4w1e8r5t3y6u0i",
+    "name": "Maria Silva",
+    "email": "maria.silva@example.com",
+    "phone": "+5511999990000",
+    "contactType": "person",
+    "cpf": null,
+    "cnpj": null,
+    "address": "Rua Exemplo, 100",
+    "city": "São Paulo",
+    "state": "SP",
+    "country": "Brasil",
+    "postalCode": "01000-000",
+    "customFields": {
+        "origem": "Website"
+    },
+    "createdAt": "2026-11-16T12:00:00.000Z",
+    "updatedAt": "2026-11-16T12:30:00.000Z",
+    "eventId": "ct7h2k9q4w1e8r5t3y6u0i",
+    "eventAt": "2026-11-16T12:00:00.000Z",
+    "webhookEventId": "evt_3f9c2a7b1d4e8f60a5b2c9d1"
+}

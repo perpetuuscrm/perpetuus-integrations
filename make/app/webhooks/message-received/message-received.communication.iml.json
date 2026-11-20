@@ -1,0 +1,28 @@
+{
+    "condition": "{{body.type == 'message.received'}}",
+    "output": {
+        "id": "{{body.data.message.id}}",
+        "content": "{{body.data.message.content}}",
+        "messageType": "{{body.data.message.messageType}}",
+        "sentAt": "{{body.data.message.createdAt}}",
+        "senderId": "{{body.data.message.sender.id}}",
+        "senderName": "{{body.data.message.sender.name}}",
+        "senderType": "{{body.data.message.sender.type}}",
+        "attachments": "{{body.data.message.attachments}}",
+        "conversationId": "{{body.data.conversation.id}}",
+        "conversationStatus": "{{body.data.conversation.status}}",
+        "inboxId": "{{body.data.conversation.inboxId}}",
+        "contactId": "{{body.data.contact.documentId}}",
+        "contactName": "{{body.data.contact.name}}",
+        "contactEmail": "{{body.data.contact.email}}",
+        "contactPhone": "{{body.data.contact.phone}}",
+        "cardId": "{{body.data.card.documentId}}",
+        "cardTitle": "{{body.data.card.title}}",
+        "boardId": "{{body.data.card.board.documentId}}",
+        "phaseId": "{{body.data.card.currentPhase.documentId}}",
+        "phaseName": "{{body.data.card.currentPhase.name}}",
+        "eventId": "{{body.data.message.id}}",
+        "eventAt": "{{ifempty(body.data.message.createdAt, body.timestamp)}}",
+        "webhookEventId": "{{body.id}}"
+    }
+}

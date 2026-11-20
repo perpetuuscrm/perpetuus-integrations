@@ -1,0 +1,7 @@
+{
+    "url": "/webhook-subscriptions/{{webhook.externalHookId}}",
+    "method": "DELETE",
+    "response": {
+        "valid": "{{statusCode < 300 || statusCode == 404}}"
+    }
+}

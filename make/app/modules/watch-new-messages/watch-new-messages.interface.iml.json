@@ -1,0 +1,138 @@
+[
+    {
+        "name": "id",
+        "label": "Message ID",
+        "type": "text"
+    },
+    {
+        "name": "content",
+        "label": "Content",
+        "type": "text"
+    },
+    {
+        "name": "messageType",
+        "label": "Message type",
+        "type": "text"
+    },
+    {
+        "name": "sentAt",
+        "label": "Sent at",
+        "type": "date"
+    },
+    {
+        "name": "senderId",
+        "label": "Sender ID",
+        "type": "text"
+    },
+    {
+        "name": "senderName",
+        "label": "Sender name",
+        "type": "text"
+    },
+    {
+        "name": "senderType",
+        "label": "Sender type",
+        "type": "text"
+    },
+    {
+        "name": "attachments",
+        "label": "Attachments",
+        "type": "array",
+        "spec": {
+            "type": "collection",
+            "label": "Attachment",
+            "spec": [
+                {
+                    "name": "id",
+                    "label": "Attachment ID",
+                    "type": "text"
+                },
+                {
+                    "name": "fileType",
+                    "label": "File type",
+                    "type": "text"
+                },
+                {
+                    "name": "url",
+                    "label": "URL",
+                    "type": "url"
+                }
+            ]
+        }
+    },
+    {
+        "name": "conversationId",
+        "label": "Conversation ID",
+        "type": "text"
+    },
+    {
+        "name": "conversationStatus",
+        "label": "Conversation status",
+        "type": "text"
+    },
+    {
+        "name": "inboxId",
+        "label": "Inbox ID",
+        "type": "text"
+    },
+    {
+        "name": "contactId",
+        "label": "Contact ID",
+        "type": "text"
+    },
+    {
+        "name": "contactName",
+        "label": "Contact name",
+        "type": "text"
+    },
+    {
+        "name": "contactEmail",
+        "label": "Contact email",
+        "type": "text"
+    },
+    {
+        "name": "contactPhone",
+        "label": "Contact phone",
+        "type": "text"
+    },
+    {
+        "name": "cardId",
+        "label": "Card ID",
+        "type": "text"
+    },
+    {
+        "name": "cardTitle",
+        "label": "Card title",
+        "type": "text"
+    },
+    {
+        "name": "boardId",
+        "label": "Board ID",
+        "type": "text"
+    },
+    {
+        "name": "phaseId",
+        "label": "Phase ID",
+        "type": "text"
+    },
+    {
+        "name": "phaseName",
+        "label": "Phase name",
+        "type": "text"
+    },
+    {
+        "name": "eventId",
+        "label": "Event ID",
+        "type": "text"
+    },
+    {
+        "name": "eventAt",
+        "label": "Event at",
+        "type": "date"
+    },
+    {
+        "name": "webhookEventId",
+        "label": "Webhook event ID",
+        "type": "text"
+    }
+]

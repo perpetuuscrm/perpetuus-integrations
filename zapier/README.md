@@ -20,9 +20,13 @@ The operations, field keys and outputs follow the shared
 
 | Type | Key | Label | REST calls | Scope |
 |------|-----|-------|------------|-------|
-| Trigger | `newCard` | New Card | `GET /boards/{boardId}/cards` | `crm:read` |
-| Trigger | `cardEnteredPhase` | Card Entered Phase | `GET /boards/{boardId}/cards` | `crm:read` |
-| Trigger | `newContact` | New Contact | `GET /contacts` | `crm:read` |
+| Trigger (instant) | `newCardInstant` | New Card | REST Hook on `card.created` | `crm:read` |
+| Trigger (instant) | `cardEnteredPhaseInstant` | Card Entered Phase | REST Hook on `card.created` + `card.phase_changed` | `crm:read` |
+| Trigger (instant) | `newContactInstant` | New Contact | REST Hook on `contact.created` | `crm:read` |
+| Trigger (instant) | `newMessage` | New Message | REST Hook on `message.received` | `chat:read` |
+| Trigger (polling, hidden) | `newCard` | New Card (Polling) | `GET /boards/{boardId}/cards` | `crm:read` |
+| Trigger (polling, hidden) | `cardEnteredPhase` | Card Entered Phase (Polling) | `GET /boards/{boardId}/cards` | `crm:read` |
+| Trigger (polling, hidden) | `newContact` | New Contact (Polling) | `GET /contacts` | `crm:read` |
 | Trigger | `taskCompleted` | Task Completed | `GET /tasks` | `crm:read` |
 | Create | `upsertContact` | Create or Update Contact | `POST /contacts/upsert` | `crm:write` |
 | Create | `createCard` | Create Card | `POST /boards/{boardId}/cards` (+ `PUT` to move, + `GET`) | `crm:write` |
@@ -57,7 +61,28 @@ The connection test calls `GET /auth/token-info` and the connection label is
 `Authorization: Bearer <key>`; an `afterResponse` middleware turns 401, 403 and 429 into the
 canonical messages.
 
-## How the triggers deduplicate
+## Instant triggers (REST Hooks)
+
+Since 1.1.0 New Card, Card Entered Phase, New Contact and New Message are REST Hooks:
+
+- **Subscribe** (Zap turned on): `POST /webhook-subscriptions` with `{ url: targetUrl, events,
+  boardId, origin: "zapier", description }`. The subscription `id` and `secret` stay in
+  `bundle.subscribeData`.
+- **Perform**: checks `X-Perpetuus-Signature` (`sha256=` HMAC of `<timestamp>.<raw body>`,
+  5-minute tolerance) and drops anything that does not match, `ping` deliveries, other events
+  and (Card Entered Phase) other phases. The result is the same object as polling (`id` =
+  `eventId`, plus `cardId`/`contactId`/`messageId`, `eventAt`), plus `webhookEventId` and, for
+  Card Entered Phase, `previousPhaseId`/`previousPhaseName`.
+- **Unsubscribe** (Zap turned off): `DELETE /webhook-subscriptions/{id}` (404 is fine).
+- **performList** (Zap editor test): up to 3 real recent records from the polling routes, or
+  `GET /webhook-subscriptions/samples?event=…` when the account has none. New Message always
+  uses the samples.
+
+The polling triggers keep their keys (`newCard`, `cardEnteredPhase`, `newContact`) so existing
+Zaps keep running; they are hidden from new Zaps and labelled "(Polling)". Task Completed stays
+polling (no webhook event yet).
+
+## How the polling triggers deduplicate
 
 Zapier keeps no cursor for the integration and deduplicates by the `id` of each result, so
 every poll reads the newest 100 items (`sort=<field>:desc`) and returns them newest first.
@@ -70,8 +95,8 @@ every poll reads the newest 100 items (`sort=<field>:desc`) and returns them new
 | New Contact | `createdAt` | `{contactId}` | Only contacts visible to the key owner. |
 | Task Completed | `completedAt` (`$notNull`) | `{taskId}:{completedAt}` | Fires on the first completion only (the API keeps the first `completedAt`). |
 
-When more than 100 events happen between two polls, the oldest ones are not seen. See the
-[API gaps](../docs/v1-contract.md#9-lacunas-da-api) for the planned REST hooks.
+When more than 100 events happen between two polls, the oldest ones are not seen. The instant
+triggers above do not have this limit.
 
 ## Limits and errors
 

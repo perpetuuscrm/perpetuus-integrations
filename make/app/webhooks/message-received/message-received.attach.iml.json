@@ -1,0 +1,18 @@
+{
+    "url": "/webhook-subscriptions",
+    "method": "POST",
+    "body": {
+        "url": "{{webhook.url}}",
+        "events": [
+            "message.received"
+        ],
+        "boardId": "{{ifempty(parameters.boardId, undefined)}}",
+        "origin": "make",
+        "description": "Make: Watch new messages"
+    },
+    "response": {
+        "data": {
+            "externalHookId": "{{body.data.id}}"
+        }
+    }
+}

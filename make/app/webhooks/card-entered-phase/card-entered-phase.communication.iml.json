@@ -1,0 +1,28 @@
+{
+    "condition": "{{(body.type == 'card.created' || body.type == 'card.phase_changed') && (ifempty(parameters.phaseId, '') == '' || ifempty(body.data.toPhase.documentId, body.data.currentPhase.documentId) == parameters.phaseId)}}",
+    "output": {
+        "id": "{{body.data.documentId}}",
+        "title": "{{body.data.title}}",
+        "boardId": "{{ifempty(body.data.board.documentId, parameters.boardId)}}",
+        "phaseId": "{{ifempty(body.data.toPhase.documentId, body.data.currentPhase.documentId)}}",
+        "phaseName": "{{ifempty(body.data.toPhase.name, body.data.currentPhase.name)}}",
+        "phaseEnteredAt": "{{body.data.currentPhaseEnteredAt}}",
+        "contactId": "{{body.data.contact.documentId}}",
+        "contactName": "{{body.data.contact.name}}",
+        "contactEmail": "{{body.data.contact.email}}",
+        "contactPhone": "{{body.data.contact.phone}}",
+        "value": "{{if(ifempty(body.data.value, '') == '', null, body.data.value * 1)}}",
+        "dueDate": "{{body.data.dueDate}}",
+        "description": "{{body.data.description}}",
+        "tagIds": "{{map(body.data.tags, 'documentId')}}",
+        "tagNames": "{{map(body.data.tags, 'name')}}",
+        "fields": "{{body.data.fields}}",
+        "createdAt": "{{body.data.createdAt}}",
+        "updatedAt": "{{body.data.updatedAt}}",
+        "eventId": "{{body.data.documentId}}:{{ifempty(body.data.toPhase.documentId, body.data.currentPhase.documentId)}}:{{ifempty(body.data.currentPhaseEnteredAt, body.timestamp)}}",
+        "eventAt": "{{ifempty(body.data.currentPhaseEnteredAt, body.timestamp)}}",
+        "webhookEventId": "{{body.id}}",
+        "previousPhaseId": "{{body.data.fromPhase.documentId}}",
+        "previousPhaseName": "{{body.data.fromPhase.name}}"
+    }
+}

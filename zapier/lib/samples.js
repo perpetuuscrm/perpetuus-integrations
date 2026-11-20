@@ -89,6 +89,36 @@ const taskCompletedEvent = {
   eventAt: task.completedAt,
 };
 
+const message = {
+  id: '98765',
+  content: 'Olá! Quero saber mais sobre o plano.',
+  messageType: 'incoming',
+  sentAt: '2026-11-16T13:10:00.000Z',
+  senderId: '321',
+  senderName: 'Maria Silva',
+  senderType: 'contact',
+  attachments: [],
+  conversationId: '1234',
+  conversationStatus: 'open',
+  inboxId: '7',
+  contactId: contact.id,
+  contactName: contact.name,
+  contactEmail: contact.email,
+  contactPhone: contact.phone,
+  cardId: card.id,
+  cardTitle: card.title,
+  boardId: card.boardId,
+  phaseId: card.phaseId,
+  phaseName: card.phaseName,
+};
+const newMessageEvent = {
+  ...message,
+  messageId: message.id,
+  eventId: message.id,
+  eventAt: message.sentAt,
+  webhookEventId: 'evt_8f14e45f-ceea-4e7a-9c5b-2a1d3c4b5a69',
+};
+
 const contactOutputFields = [
   { key: 'id', label: 'Contact ID', type: 'string' },
   { key: 'name', label: 'Name' },
@@ -159,6 +189,30 @@ const eventOutputFields = (entityKey, entityLabel) => [
 
 const withoutId = (fields) => fields.filter((field) => field.key !== 'id');
 
+const messageOutputFields = [
+  { key: 'content', label: 'Message Content' },
+  { key: 'messageType', label: 'Message Type' },
+  { key: 'sentAt', label: 'Sent At', type: 'datetime' },
+  { key: 'senderId', label: 'Sender ID' },
+  { key: 'senderName', label: 'Sender Name' },
+  { key: 'senderType', label: 'Sender Type' },
+  { key: 'conversationId', label: 'Conversation ID' },
+  { key: 'conversationStatus', label: 'Conversation Status' },
+  { key: 'inboxId', label: 'Inbox ID' },
+  { key: 'contactId', label: 'Contact ID' },
+  { key: 'contactName', label: 'Contact Name' },
+  { key: 'contactEmail', label: 'Contact Email' },
+  { key: 'contactPhone', label: 'Contact Phone' },
+  { key: 'cardId', label: 'Card ID' },
+  { key: 'cardTitle', label: 'Card Title' },
+  { key: 'boardId', label: 'Board ID' },
+  { key: 'phaseId', label: 'Phase ID' },
+  { key: 'phaseName', label: 'Phase Name' },
+];
+
+/** Extra field of the instant triggers: the id of the webhook delivery envelope (`evt_…`). */
+const webhookEventIdField = { key: 'webhookEventId', label: 'Webhook Event ID', type: 'string' };
+
 module.exports = {
   contact,
   upsertedContact,
@@ -172,9 +226,24 @@ module.exports = {
   upsertedContactOutputFields,
   cardOutputFields,
   taskOutputFields,
+  newMessageEvent,
+  messageOutputFields,
+  webhookEventIdField,
   cardEventOutputFields: [
     ...eventOutputFields('cardId', 'Card ID'),
     ...withoutId(cardOutputFields).filter((field) => field.key !== 'cardId'),
+  ],
+  cardPhaseEventOutputFields: [
+    ...eventOutputFields('cardId', 'Card ID'),
+    ...withoutId(cardOutputFields).filter((field) => field.key !== 'cardId'),
+    { key: 'previousPhaseId', label: 'Previous Phase ID' },
+    { key: 'previousPhaseName', label: 'Previous Phase Name' },
+    webhookEventIdField,
+  ],
+  messageEventOutputFields: [
+    ...eventOutputFields('messageId', 'Message ID'),
+    ...messageOutputFields,
+    webhookEventIdField,
   ],
   contactEventOutputFields: [
     ...eventOutputFields('contactId', 'Contact ID'),

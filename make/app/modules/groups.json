@@ -2,6 +2,8 @@
     {
         "label": "Cards",
         "modules": [
+            "watchNewCardsInstant",
+            "watchCardsEnteredPhaseInstant",
             "watchNewCards",
             "watchCardsEnteredPhase",
             "createCard",
@@ -13,6 +15,7 @@
     {
         "label": "Contacts",
         "modules": [
+            "watchNewContactsInstant",
             "watchNewContacts",
             "upsertContact",
             "searchContacts"
@@ -23,6 +26,12 @@
         "modules": [
             "watchCompletedTasks",
             "createTask"
+        ]
+    },
+    {
+        "label": "Conversations",
+        "modules": [
+            "watchNewMessages"
         ]
     },
     {

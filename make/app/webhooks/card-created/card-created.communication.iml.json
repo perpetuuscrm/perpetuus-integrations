@@ -1,0 +1,26 @@
+{
+    "condition": "{{body.type == 'card.created'}}",
+    "output": {
+        "id": "{{body.data.documentId}}",
+        "title": "{{body.data.title}}",
+        "boardId": "{{ifempty(body.data.board.documentId, parameters.boardId)}}",
+        "phaseId": "{{body.data.currentPhase.documentId}}",
+        "phaseName": "{{body.data.currentPhase.name}}",
+        "phaseEnteredAt": "{{body.data.currentPhaseEnteredAt}}",
+        "contactId": "{{body.data.contact.documentId}}",
+        "contactName": "{{body.data.contact.name}}",
+        "contactEmail": "{{body.data.contact.email}}",
+        "contactPhone": "{{body.data.contact.phone}}",
+        "value": "{{if(ifempty(body.data.value, '') == '', null, body.data.value * 1)}}",
+        "dueDate": "{{body.data.dueDate}}",
+        "description": "{{body.data.description}}",
+        "tagIds": "{{map(body.data.tags, 'documentId')}}",
+        "tagNames": "{{map(body.data.tags, 'name')}}",
+        "fields": "{{body.data.fields}}",
+        "createdAt": "{{body.data.createdAt}}",
+        "updatedAt": "{{body.data.updatedAt}}",
+        "eventId": "{{body.data.documentId}}",
+        "eventAt": "{{ifempty(body.data.createdAt, body.timestamp)}}",
+        "webhookEventId": "{{body.id}}"
+    }
+}

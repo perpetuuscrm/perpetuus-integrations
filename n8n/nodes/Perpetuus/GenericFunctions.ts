@@ -1,11 +1,13 @@
 import type {
 	IDataObject,
 	IExecuteFunctions,
+	IHookFunctions,
 	IHttpRequestMethods,
 	IHttpRequestOptions,
 	ILoadOptionsFunctions,
 	INode,
 	IPollFunctions,
+	IWebhookFunctions,
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError, sleep } from 'n8n-workflow';
@@ -20,7 +22,12 @@ import {
 	type RawResponse,
 } from './shared/transport';
 
-export type PerpetuusContext = IExecuteFunctions | ILoadOptionsFunctions | IPollFunctions;
+export type PerpetuusContext =
+	| IExecuteFunctions
+	| ILoadOptionsFunctions
+	| IPollFunctions
+	| IHookFunctions
+	| IWebhookFunctions;
 
 export const CREDENTIAL_NAME = 'perpetuusApi';
 

@@ -12,11 +12,17 @@ vi.mock('n8n-workflow', async (importOriginal) => {
 });
 
 describe('loading against an n8n-workflow without NodeConnectionTypes', () => {
-	it('constructs the Perpetuus and Perpetuus Trigger nodes', async () => {
+	it('constructs the Perpetuus, Perpetuus Trigger (v1 and v2) and Perpetuus Polling Trigger nodes', async () => {
 		const { Perpetuus } = await import('../nodes/Perpetuus/Perpetuus.node');
 		const { PerpetuusTrigger } = await import('../nodes/PerpetuusTrigger/PerpetuusTrigger.node');
+		const { PerpetuusPollingTrigger } = await import(
+			'../nodes/PerpetuusPollingTrigger/PerpetuusPollingTrigger.node'
+		);
 		expect(new Perpetuus().description.outputs).toEqual(['main']);
 		expect(new Perpetuus().description.inputs).toEqual(['main']);
-		expect(new PerpetuusTrigger().description.outputs).toEqual(['main']);
+		const trigger = new PerpetuusTrigger();
+		expect(trigger.getNodeType(1).description.outputs).toEqual(['main']);
+		expect(trigger.getNodeType(2).description.outputs).toEqual(['main']);
+		expect(new PerpetuusPollingTrigger().description.outputs).toEqual(['main']);
 	});
 });

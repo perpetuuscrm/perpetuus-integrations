@@ -86,10 +86,32 @@ Notes:
 | New Contact | none | A contact is created | contact ID |
 | Task Completed | Board (optional) | A task is completed | task ID + completion time |
 
+### Perpetuus Trigger (instant, webhooks)
+
+New **Perpetuus Trigger** nodes (v2) are instant: activating the workflow creates a Perpetuus
+webhook subscription for the node's production URL (`POST /webhook-subscriptions`, `origin: n8n`),
+and deactivating it deletes the subscription. Events: **New Card** (board), **Card Entered Phase**
+(board, phase optional), **New Contact** and **New Message** (board optional; the API key needs the
+`chat:read` scope).
+
+- Your n8n must be reachable by Perpetuus over **public HTTPS** (n8n Cloud, or self-hosted with
+  `WEBHOOK_URL` set). Otherwise use the Polling Trigger below.
+- Each request is verified with `X-Perpetuus-Signature` (`sha256=` HMAC of `<timestamp>.<body>`
+  with the subscription secret, stored in the workflow static data; timestamps older than 5
+  minutes are rejected). Requests that fail get HTTP 401 and start nothing.
+- The output is the same as polling (same `eventId`/`eventAt`), plus `webhookEventId` (the
+  delivery event id, equal across retries) and, for Card Entered Phase, `previousPhaseId` and
+  `previousPhaseName`. Every phase move fires, including quick moves through several phases.
+- Workflows built before 0.2.0 keep the v1 node (polling) and do not change.
+
+### Perpetuus Polling Trigger
+
+The polling events (New Card, Card Entered Phase, New Contact, Task Completed) are in the
+**Perpetuus Polling Trigger** node. Task Completed is only available here (no webhook event yet).
+
 How polling works:
 
-- Perpetuus has no webhooks yet, so the trigger checks for changes on every poll (set the
-  interval in **Poll Times**).
+- The trigger checks for changes on every poll (set the interval in **Poll Times**).
 - The **first poll only marks the starting point**: records that already exist are never
   replayed. Changing the board, phase or event starts over.
 - Each poll reads up to 500 new records, oldest first. A larger backlog is processed on the

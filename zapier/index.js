@@ -8,6 +8,7 @@ const cardEnteredPhase = require('./triggers/card_entered_phase');
 const newContact = require('./triggers/new_contact');
 const taskCompleted = require('./triggers/task_completed');
 const dropdowns = require('./triggers/dropdowns');
+const instant = require('./triggers/instant');
 
 const upsertContact = require('./creates/upsert_contact');
 const createCard = require('./creates/create_card');
@@ -33,6 +34,10 @@ module.exports = {
   afterResponse: [...afters],
 
   triggers: byKey(
+    instant.newCardInstant,
+    instant.cardEnteredPhaseInstant,
+    instant.newContactInstant,
+    instant.newMessage,
     newCard,
     cardEnteredPhase,
     newContact,
