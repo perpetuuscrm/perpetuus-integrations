@@ -512,19 +512,19 @@
                 "webhook": [
                     {
                         "local": "cardCreated",
-                        "remote": "cardCreated"
+                        "remote": "perpetuus-crm-ej2gdv"
                     },
                     {
                         "local": "cardEnteredPhase",
-                        "remote": "cardEnteredPhase"
+                        "remote": "perpetuus-crm-ej2gdv2"
                     },
                     {
                         "local": "contactCreated",
-                        "remote": "contactCreated"
+                        "remote": "perpetuus-crm-ej2gdv3"
                     },
                     {
                         "local": "messageReceived",
-                        "remote": "messageReceived"
+                        "remote": "perpetuus-crm-ej2gdv4"
                     }
                 ],
                 "endpoint": []
