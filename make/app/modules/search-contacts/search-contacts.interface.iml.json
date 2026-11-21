@@ -55,8 +55,13 @@
         "type": "text"
     },
     {
-        "name": "postalCode",
+        "name": "postal_code",
         "label": "Postal code",
+        "type": "text"
+    },
+    {
+        "name": "birthdate",
+        "label": "Birthdate",
         "type": "text"
     },
     {

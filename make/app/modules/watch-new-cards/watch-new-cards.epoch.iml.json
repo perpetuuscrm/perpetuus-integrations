@@ -3,7 +3,7 @@
         "limit": 300,
         "output": {
             "label": "{{item.title}}",
-            "date": "{{item.createdAt}}"
+            "date": "{{parseDate(item.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ')}}"
         }
     }
 }

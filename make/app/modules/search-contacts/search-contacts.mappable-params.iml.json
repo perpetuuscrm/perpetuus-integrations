@@ -33,9 +33,6 @@
         "type": "uinteger",
         "label": "Limit",
         "default": 10,
-        "validate": {
-            "max": 100
-        },
-        "help": "Maximum number of contacts to return, up to 100. Leave it empty to return up to 100."
+        "help": "Maximum number of contacts to return. Perpetuus is read in pages of 100, and further pages are requested until this number is reached. Leave it empty to return up to 100."
     }
 ]

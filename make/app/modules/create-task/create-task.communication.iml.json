@@ -1,53 +1,62 @@
-{
-    "url": "/tasks",
-    "method": "POST",
-    "body": {
-        "data": {
-            "name": "{{parameters.name}}",
-            "card": "{{parameters.cardId}}",
-            "board": "{{if(parameters.cardId, undefined, parameters.boardId)}}",
-            "description": "{{parameters.description}}",
-            "dueDate": "{{if(parameters.dueDate, formatDate(parameters.dueDate, 'YYYY-MM-DDTHH:mm:ss.SSS[Z]', 'UTC'), undefined)}}",
-            "type": "{{parameters.type}}",
-            "priority": "{{parameters.priority}}",
-            "taskStatus": "{{parameters.status}}",
-            "assignees": "{{parameters.assigneeIds}}"
-        }
-    },
-    "response": {
-        "error": {
-            "message": "[{{statusCode}}] {{if(statusCode >= 500, 'Perpetuus server error (HTTP ' + statusCode + '). Try again later.', 'Perpetuus request failed (HTTP ' + statusCode + '): ' + ifempty(ifempty(body.error.message, body.message), 'unknown error'))}}",
-            "500": {
-                "type": "RuntimeError",
-                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
-            },
-            "502": {
-                "type": "RuntimeError",
-                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
-            },
-            "503": {
-                "type": "RuntimeError",
-                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
-            },
-            "504": {
-                "type": "RuntimeError",
-                "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+[
+    {
+        "url": "/tasks",
+        "method": "POST",
+        "body": {
+            "data": {
+                "name": "{{parameters.name}}",
+                "card": "{{parameters.cardId}}",
+                "board": "{{if(parameters.cardId, undefined, parameters.boardId)}}",
+                "description": "{{parameters.description}}",
+                "dueDate": "{{if(parameters.dueDate, formatDate(parameters.dueDate, 'YYYY-MM-DDTHH:mm:ss.SSS[Z]', 'UTC'), undefined)}}",
+                "type": "{{parameters.type}}",
+                "priority": "{{parameters.priority}}",
+                "taskStatus": "{{parameters.status}}",
+                "assignees": "{{parameters.assigneeIds}}"
             }
         },
-        "output": {
-            "id": "{{body.documentId}}",
-            "name": "{{body.name}}",
-            "description": "{{body.description}}",
-            "type": "{{body.type}}",
-            "priority": "{{body.priority}}",
-            "status": "{{body.taskStatus}}",
-            "dueDate": "{{body.dueDate}}",
-            "completedAt": "{{body.completedAt}}",
-            "cardId": "{{ifempty(body.card.documentId, parameters.cardId)}}",
-            "cardTitle": "{{body.card.title}}",
-            "assigneeIds": "{{map(body.assignees, 'documentId')}}",
-            "createdAt": "{{body.createdAt}}",
-            "updatedAt": "{{body.updatedAt}}"
+        "response": {
+            "error": {
+                "500": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                },
+                "502": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                },
+                "503": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                },
+                "504": {
+                    "type": "RuntimeError",
+                    "message": "[{{statusCode}}] Perpetuus server error (HTTP {{statusCode}}). Try again later. The request was not repeated automatically to avoid duplicates; check Perpetuus before running it again."
+                }
+            },
+            "temp": {
+                "taskId": "{{ifempty(body.data.documentId, body.documentId)}}"
+            }
+        }
+    },
+    {
+        "url": "/tasks/{{temp.taskId}}",
+        "method": "GET",
+        "qs": {
+            "populate[card]": "true",
+            "populate[assignees]": "true"
+        },
+        "response": {
+            "output": {
+                "{{...}}": "{{omit(body, 'id', 'cardId', 'assigneeIds', 'dueDate', 'completedAt', 'createdAt', 'updatedAt')}}",
+                "id": "{{body.documentId}}",
+                "cardId": "{{ifempty(body.card.documentId, parameters.cardId)}}",
+                "assigneeIds": "{{map(body.assignees, 'documentId')}}",
+                "dueDate": "{{if(body.dueDate, parseDate(body.dueDate, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), body.dueDate)}}",
+                "completedAt": "{{if(body.completedAt, parseDate(body.completedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), body.completedAt)}}",
+                "createdAt": "{{if(body.createdAt, parseDate(body.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), body.createdAt)}}",
+                "updatedAt": "{{if(body.updatedAt, parseDate(body.updatedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), body.updatedAt)}}"
+            }
         }
     }
-}
+]

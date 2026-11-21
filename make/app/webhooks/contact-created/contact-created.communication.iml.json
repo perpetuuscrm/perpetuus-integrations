@@ -1,23 +1,13 @@
 {
     "condition": "{{body.type == 'contact.created'}}",
     "output": {
+        "{{...}}": "{{omit(body.data, 'id', 'contactType', 'createdAt', 'updatedAt', 'eventId', 'eventAt', 'webhookEventId')}}",
         "id": "{{body.data.documentId}}",
-        "name": "{{body.data.name}}",
-        "email": "{{body.data.email}}",
-        "phone": "{{body.data.phone}}",
         "contactType": "{{switch(body.data.contact_type, 'pessoa', 'person', 'empresa', 'company', 'person', 'person', 'company', 'company')}}",
-        "cpf": "{{body.data.cpf}}",
-        "cnpj": "{{body.data.cnpj}}",
-        "address": "{{body.data.address}}",
-        "city": "{{body.data.city}}",
-        "state": "{{body.data.state}}",
-        "country": "{{body.data.country}}",
-        "postalCode": "{{body.data.postal_code}}",
-        "customFields": "{{body.data.customFields}}",
-        "createdAt": "{{body.data.createdAt}}",
-        "updatedAt": "{{body.data.updatedAt}}",
+        "createdAt": "{{if(body.data.createdAt, parseDate(body.data.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), body.data.createdAt)}}",
+        "updatedAt": "{{if(body.data.updatedAt, parseDate(body.data.updatedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), body.data.updatedAt)}}",
         "eventId": "{{body.data.documentId}}",
-        "eventAt": "{{ifempty(body.data.createdAt, body.timestamp)}}",
+        "eventAt": "{{if(ifempty(body.data.createdAt, body.timestamp), parseDate(ifempty(body.data.createdAt, body.timestamp), 'YYYY-MM-DDTHH:mm:ss.SSSZ'), ifempty(body.data.createdAt, body.timestamp))}}",
         "webhookEventId": "{{body.id}}"
     }
 }

@@ -266,9 +266,8 @@ const base = readJson(app.generalCodeFiles.base) ?? {};
 const sanitizes = (api) => (api?.log?.sanitize ?? []).map((s) => s.toLowerCase());
 if (!sanitizes(base).includes('request.headers.authorization')) fail('base', 'log.sanitize must hide request.headers.authorization');
 if (!/Bearer \{\{connection\.apiKey\}\}/.test(base.headers?.Authorization ?? '')) fail('base', 'Authorization header must be "Bearer {{connection.apiKey}}"');
-if (!/^\{\{ifempty\(connection\.baseUrl, 'https:\/\/api\.perpetuus\.com\.br\/api'\)\}\}$/.test(base.baseUrl ?? '')) {
-  fail('base', 'baseUrl must come from the connection with the production default');
-}
+// Make app review (#2372373): the API address is fixed, never a connection parameter.
+if (base.baseUrl !== 'https://api.perpetuus.com.br/api') fail('base', 'baseUrl must be the fixed address https://api.perpetuus.com.br/api');
 const baseError = base.response?.error ?? {};
 if (baseError.type) fail('base', 'a top-level response.error.type would replace the 429 and 5xx defaults');
 for (const code of ['400', '401', '402', '403', '404', '429']) {
@@ -302,9 +301,8 @@ for (const [id, meta] of connections) {
   if (meta.connectionType !== 'basic') fail(where, 'connectionType must be basic (API key)');
   const apiKey = params.find((p) => p.name === 'apiKey');
   if (!apiKey || apiKey.type !== 'password' || !apiKey.required) fail(where, 'apiKey must be a required password parameter');
-  const baseUrl = params.find((p) => p.name === 'baseUrl');
-  if (!baseUrl || baseUrl.required || baseUrl.default !== 'https://api.perpetuus.com.br/api') fail(where, 'baseUrl must be optional with the production default');
-  if (!/\/auth\/token-info$/.test(comm.url ?? '')) fail(where, 'connection must be validated on /auth/token-info');
+  if (params.some((p) => p.name === 'baseUrl')) fail(where, 'the API address must not be a connection parameter (fixed in the base, Make review)');
+  if (comm.url !== 'https://api.perpetuus.com.br/api/auth/token-info') fail(where, 'connection must be validated on https://api.perpetuus.com.br/api/auth/token-info');
   if (!sanitizes(comm).includes('request.headers.authorization')) fail(where, 'log.sanitize must hide request.headers.authorization');
   if (!comm.response?.error?.message) fail(where, 'response.error.message missing');
   const label = comm.response?.metadata?.value ?? '';
@@ -381,6 +379,7 @@ if (universal.length !== 1 || universal[0][1].label !== 'Make an API call') fail
 
 for (const id of Object.keys(OPS)) if (!modules[id]) fail('modules', `module ${id} (${OPS[id].op}) is missing`);
 
+const SPREAD = '{{...}}';
 const lastRequest = (comm) => (Array.isArray(comm) ? comm[comm.length - 1] : comm);
 
 for (const [id, meta] of Object.entries(modules)) {
@@ -427,11 +426,24 @@ for (const [id, meta] of Object.entries(modules)) {
   const output = instant ? hookComm?.output : lastRequest(comm)?.response?.output;
   if (meta.moduleType !== 'universal') {
     if (!output || typeof output !== 'object') fail(where, 'response.output must project the canonical object');
-    else if (!sameSet(Object.keys(output), ifaceNames)) {
+    else if (SPREAD in output) {
+      // Make review: return the whole API record ({{...}} first), then overrides.
+      if (Object.keys(output)[0] !== SPREAD) fail(where, 'the {{...}} spread must be the first output key, or it overwrites the overrides');
+      const extra = diff(Object.keys(output).filter((k) => k !== SPREAD), ifaceNames);
+      if (extra.length) fail(where, `output overrides missing from the interface: ${extra}`);
+      for (const [key, value] of Object.entries(output)) {
+        const field = iface.find((f) => f.name === key);
+        if (field?.type === 'date' && !/parseDate\(/.test(value)) fail(where, `date output ${key} must be parsed with parseDate`);
+      }
+      for (const field of iface) {
+        if (field.type === 'date' && !(field.name in output)) fail(where, `date ${field.name} is not parsed in the output`);
+      }
+    } else if (!sameSet(Object.keys(output), ifaceNames)) {
       fail(where, `output keys and interface differ (output only: ${diff(Object.keys(output), ifaceNames)}; interface only: ${diff(ifaceNames, Object.keys(output))})`);
     }
   }
-  if (!sameSet(Object.keys(samples), ifaceNames)) fail(where, `samples and interface differ (${diff(Object.keys(samples), ifaceNames)} / ${diff(ifaceNames, Object.keys(samples))})`);
+  const spread = output && typeof output === 'object' && SPREAD in output;
+  if (spread ? diff(ifaceNames, Object.keys(samples)).length : !sameSet(Object.keys(samples), ifaceNames)) fail(where, `samples and interface differ (${diff(Object.keys(samples), ifaceNames)} / ${diff(ifaceNames, Object.keys(samples))})`);
   for (const field of iface) {
     if (/At$|^dueDate$/.test(field.name) && field.type !== 'date') fail(where, `interface ${field.name} must be type date`);
     if (field.label && field.label !== field.label[0].toUpperCase() + field.label.slice(1).replace(/\b(?!ID|IDs|CPF|CNPJ\b)([A-Z])(?=[a-z])/g, (c) => c.toLowerCase())) {
@@ -449,7 +461,10 @@ for (const [id, meta] of Object.entries(modules)) {
     if (!limitParam?.required) fail(where, 'trigger needs a required limit parameter');
     const trigger = comm?.response?.trigger ?? {};
     if (trigger.type !== 'date' || trigger.order !== 'desc' || !trigger.id || !trigger.date) fail(where, 'response.trigger must be { type: date, order: desc, id, date }');
-    if (output && (trigger.id !== output.eventId || trigger.date !== output.eventAt)) fail(where, 'trigger.id/date must be the eventId/eventAt of the output (contract §4.4)');
+    const dateField = (v) => (String(v ?? '').match(/parseDate\(([\w.]+)/) ?? [])[1];
+    if (output && (trigger.id !== output.eventId || !dateField(trigger.date) || dateField(trigger.date) !== dateField(output.eventAt))) {
+      fail(where, 'trigger.id must be the eventId and trigger.date the parsed eventAt of the output (contract §4.4)');
+    }
     if (!/:desc$/.test(comm?.qs?.sort ?? '')) fail(where, 'trigger must request newest first (sort …:desc) to match order desc');
     if (!strings(comm?.qs ?? {}).some((s) => s.includes('data.lastDate'))) fail(where, 'trigger must filter from data.lastDate');
     if (!comm?.pagination) fail(where, 'trigger needs pagination');
@@ -467,9 +482,8 @@ for (const [id, meta] of Object.entries(modules)) {
     if (!/parameters\.limit/.test(comm?.response?.limit ?? '')) fail(where, 'search response.limit must use parameters.limit');
   }
   for (const r of requests) {
-    if (r?.response?.error && r.response.error.message !== baseError.message) {
-      fail(where, 'a module response.error replaces the generic message of the base; repeat the base message');
-    }
+    // Make review: modules inherit the base error handling; only status-specific overrides stay here.
+    if (r?.response?.error && 'message' in r.response.error) fail(where, 'module response.error must not repeat the generic message of the base');
   }
   if (meta.moduleType === 'action') {
     if (requests.some((r) => r.pagination || r.response?.iterate)) fail(where, 'actions must not paginate or iterate');
@@ -483,7 +497,7 @@ for (const [id, meta] of Object.entries(modules)) {
   // Board-dependent dropdowns must be nested under the Board select: Make only passes the
   // selected board to RPCs of nested parameters (top-level siblings call /boards//… → 404).
   {
-    const BOARD_RPCS = ['listPhases', 'listTags', 'listCards', 'listMembers', 'listCardFields'];
+    const BOARD_RPCS = ['listPhases', 'listTags', 'listCards', 'listMembers', 'listCardFields', 'listTaskStatuses'];
     const board = Array.isArray(params) ? params.find((p) => p && p.name === 'boardId') : undefined;
     for (const p of Array.isArray(params) ? params : []) {
       if (!p || typeof p !== 'object' || p === board) continue;
@@ -502,7 +516,7 @@ for (const [id, meta] of Object.entries(modules)) {
     const paramNames = [...allParamNames(params)];
     for (const n of paramNames) if (!allowed.includes(n)) fail(where, `input "${n}" is not in the contract for ${spec.op}`);
     for (const n of spec.inputs) if (!paramNames.includes(n)) fail(where, `contract input "${n}" of ${spec.op} is missing`);
-    if (!sameSet(ifaceNames, spec.output)) {
+    if (!spread && !sameSet(ifaceNames, spec.output)) {
       fail(where, `interface must be the contract output of ${spec.op} (missing: ${diff(spec.output, ifaceNames)}; extra: ${diff(ifaceNames, spec.output)})`);
     }
     if (dynamicFields && id !== 'createCard') fail(where, 'only Create a card loads custom fields dynamically');
@@ -546,8 +560,12 @@ if (Ajv) {
   for (const file of readdirSync(SCHEMA_DIR).filter((f) => f.endsWith('.json'))) {
     ajv.addSchema(JSON.parse(readFileSync(join(SCHEMA_DIR, file), 'utf8')), file);
   }
+  // The bundled api.json still requires response.error.message; Make's review asks modules to
+  // inherit it from the base, so the schema check sees a placeholder message.
+  const withErrorMessage = (r) => (r?.response?.error && !('message' in r.response.error)
+    ? { ...r, response: { ...r.response, error: { message: 'inherited from base', ...r.response.error } } } : r);
   const check = (rel, schemaName) => {
-    const data = readJson(rel);
+    const data = schemaName === 'api.json' ? withErrorMessage(readJson(rel)) : readJson(rel);
     if (data === undefined) return;
     const validate = ajv.getSchema(schemaName);
     schemaChecked += 1;
@@ -568,7 +586,7 @@ if (Ajv) {
           const validate = ajv.getSchema('api.json');
           data.forEach((request, index) => {
             schemaChecked += 1;
-            if (!validate(request)) for (const e of validate.errors.slice(0, 5)) fail(`${rel}[${index}]`, `api.json ${e.instancePath || '/'} ${e.message}`);
+            if (!validate(withErrorMessage(request))) for (const e of validate.errors.slice(0, 5)) fail(`${rel}[${index}]`, `api.json ${e.instancePath || '/'} ${e.message}`);
           });
         } else check(rel, SCHEMA_FOR[code]);
       }

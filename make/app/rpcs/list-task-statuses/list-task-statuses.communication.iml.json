@@ -1,0 +1,12 @@
+{
+    "url": "/boards/{{parameters.boardId}}",
+    "method": "GET",
+    "response": {
+        "iterate": "{{ifempty(body.data.taskStatuses, body.taskStatuses)}}",
+        "limit": 100,
+        "output": {
+            "label": "{{item}}",
+            "value": "{{item}}"
+        }
+    }
+}

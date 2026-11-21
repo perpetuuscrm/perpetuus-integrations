@@ -1,5 +1,5 @@
 {
-    "baseUrl": "{{ifempty(connection.baseUrl, 'https://api.perpetuus.com.br/api')}}",
+    "baseUrl": "https://api.perpetuus.com.br/api",
     "headers": {
         "Authorization": "Bearer {{connection.apiKey}}"
     },

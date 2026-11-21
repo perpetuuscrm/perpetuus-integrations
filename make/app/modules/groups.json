@@ -6,10 +6,10 @@
             "watchCardsEnteredPhaseInstant",
             "watchNewCards",
             "watchCardsEnteredPhase",
+            "searchCards",
             "createCard",
             "moveCard",
-            "addCardTags",
-            "searchCards"
+            "addCardTags"
         ]
     },
     {
@@ -17,8 +17,8 @@
         "modules": [
             "watchNewContactsInstant",
             "watchNewContacts",
-            "upsertContact",
-            "searchContacts"
+            "searchContacts",
+            "upsertContact"
         ]
     },
     {

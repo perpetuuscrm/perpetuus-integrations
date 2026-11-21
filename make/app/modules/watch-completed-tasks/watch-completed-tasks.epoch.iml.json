@@ -3,7 +3,7 @@
         "limit": 300,
         "output": {
             "label": "{{item.name}}",
-            "date": "{{item.completedAt}}"
+            "date": "{{parseDate(item.completedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ')}}"
         }
     }
 }

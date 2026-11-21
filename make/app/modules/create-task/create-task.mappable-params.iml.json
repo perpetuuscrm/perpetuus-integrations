@@ -16,7 +16,7 @@
                 {
                     "name": "cardId",
                     "type": "select",
-                    "label": "Card ID",
+                    "label": "Card",
                     "required": false,
                     "options": "rpc://listCards",
                     "mode": "edit",
@@ -29,6 +29,13 @@
                     "multiple": true,
                     "options": "rpc://listMembers",
                     "help": "Board members responsible for the task. Leave empty to assign the API key owner. Choose the board first."
+                },
+                {
+                    "name": "status",
+                    "type": "select",
+                    "label": "Status",
+                    "options": "rpc://listTaskStatuses",
+                    "help": "A task status configured on the board. Leave empty to use the first status of the board."
                 }
             ]
         },
@@ -91,11 +98,5 @@
                 "value": "urgent"
             }
         ]
-    },
-    {
-        "name": "status",
-        "type": "text",
-        "label": "Status",
-        "help": "A task status configured on the board. Leave empty to use the first status of the board."
     }
 ]

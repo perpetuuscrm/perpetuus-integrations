@@ -55,8 +55,13 @@
         "type": "text"
     },
     {
-        "name": "postalCode",
+        "name": "postal_code",
         "label": "Postal code",
+        "type": "text"
+    },
+    {
+        "name": "birthdate",
+        "label": "Birthdate",
         "type": "text"
     },
     {
@@ -82,7 +87,7 @@
     },
     {
         "name": "eventAt",
-        "label": "Event at",
+        "label": "Event date",
         "type": "date"
     }
 ]

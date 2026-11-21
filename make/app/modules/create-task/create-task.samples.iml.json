@@ -1,17 +1,29 @@
 {
-    "id": "tk2w4e6r8t0y1u3i5o7p9a",
+    "id": "tk4r5t6y7u8i9o0p1a2s3d",
+    "documentId": "tk4r5t6y7u8i9o0p1a2s3d",
     "name": "Send the proposal",
-    "description": "Email the signed proposal to the client.",
+    "description": "Send the PDF by email.",
     "type": "follow-up",
     "priority": "high",
-    "status": "Done",
-    "dueDate": "2026-11-17T15:00:00.000Z",
-    "completedAt": "2026-11-16T14:00:00.000Z",
+    "taskStatus": "pending",
+    "dueDate": "2026-11-18T15:00:00.000Z",
+    "completedAt": null,
+    "recurrence": "none",
     "cardId": "cd3f8a1b6c9d2e7f4a0b5c",
-    "cardTitle": "Maria Silva - Website",
+    "card": {
+        "documentId": "cd3f8a1b6c9d2e7f4a0b5c",
+        "title": "Maria Silva - Website"
+    },
     "assigneeIds": [
-        "mb6y5t4r3e2w1q0p9o8i7u"
+        "mb1a2b3c4d5e6f7a8b9c0d"
     ],
-    "createdAt": "2026-11-16T12:50:00.000Z",
-    "updatedAt": "2026-11-16T14:00:00.000Z"
+    "assignees": [
+        {
+            "documentId": "mb1a2b3c4d5e6f7a8b9c0d",
+            "displayName": "João",
+            "role": "ADMIN"
+        }
+    ],
+    "createdAt": "2026-11-16T13:05:00.000Z",
+    "updatedAt": "2026-11-18T14:10:00.000Z"
 }

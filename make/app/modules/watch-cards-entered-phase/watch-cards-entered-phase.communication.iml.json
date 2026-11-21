@@ -17,32 +17,29 @@
         "limit": "{{parameters.limit}}",
         "iterate": "{{body.data}}",
         "output": {
+            "{{...}}": "{{omit(item, 'id', 'boardId', 'phaseId', 'phaseName', 'contactId', 'value', 'tagIds', 'tagNames', 'assigneeIds', 'dueDate', 'currentPhaseEnteredAt', 'lastMessageAt', 'createdAt', 'updatedAt', 'eventId', 'eventAt')}}",
             "id": "{{item.documentId}}",
-            "title": "{{item.title}}",
             "boardId": "{{ifempty(item.board.documentId, parameters.boardId)}}",
             "phaseId": "{{item.currentPhase.documentId}}",
             "phaseName": "{{item.currentPhase.name}}",
-            "phaseEnteredAt": "{{item.currentPhaseEnteredAt}}",
             "contactId": "{{item.contact.documentId}}",
-            "contactName": "{{item.contact.name}}",
-            "contactEmail": "{{item.contact.email}}",
-            "contactPhone": "{{item.contact.phone}}",
             "value": "{{if(ifempty(item.value, '') == '', null, item.value * 1)}}",
-            "dueDate": "{{item.dueDate}}",
-            "description": "{{item.description}}",
             "tagIds": "{{map(item.tags, 'documentId')}}",
             "tagNames": "{{map(item.tags, 'name')}}",
-            "fields": "{{item.fields}}",
-            "createdAt": "{{item.createdAt}}",
-            "updatedAt": "{{item.updatedAt}}",
+            "assigneeIds": "{{map(item.assignees, 'documentId')}}",
+            "dueDate": "{{if(item.dueDate, parseDate(item.dueDate, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.dueDate)}}",
+            "currentPhaseEnteredAt": "{{if(item.currentPhaseEnteredAt, parseDate(item.currentPhaseEnteredAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.currentPhaseEnteredAt)}}",
+            "lastMessageAt": "{{if(item.lastMessageAt, parseDate(item.lastMessageAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.lastMessageAt)}}",
+            "createdAt": "{{if(item.createdAt, parseDate(item.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.createdAt)}}",
+            "updatedAt": "{{if(item.updatedAt, parseDate(item.updatedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.updatedAt)}}",
             "eventId": "{{item.documentId}}:{{item.currentPhase.documentId}}:{{item.currentPhaseEnteredAt}}",
-            "eventAt": "{{item.currentPhaseEnteredAt}}"
+            "eventAt": "{{if(item.currentPhaseEnteredAt, parseDate(item.currentPhaseEnteredAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.currentPhaseEnteredAt)}}"
         },
         "trigger": {
             "type": "date",
             "order": "desc",
             "id": "{{item.documentId}}:{{item.currentPhase.documentId}}:{{item.currentPhaseEnteredAt}}",
-            "date": "{{item.currentPhaseEnteredAt}}"
+            "date": "{{parseDate(item.currentPhaseEnteredAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ')}}"
         }
     },
     "pagination": {

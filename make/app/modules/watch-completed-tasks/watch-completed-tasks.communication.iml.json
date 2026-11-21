@@ -6,33 +6,30 @@
         "filters[completedAt][$gte]": "{{formatDate(ifempty(data.lastDate, '1970-01-01T00:00:00.000Z'), 'YYYY-MM-DDTHH:mm:ss.SSS[Z]', 'UTC')}}",
         "filters[board][documentId]": "{{ifempty(parameters.boardId, undefined)}}",
         "sort": "completedAt:desc",
-        "limit": 100
+        "limit": 100,
+        "populate[card]": "true",
+        "populate[assignees]": "true"
     },
     "response": {
         "limit": "{{parameters.limit}}",
         "iterate": "{{ifempty(body.data, body)}}",
         "output": {
+            "{{...}}": "{{omit(item, 'id', 'cardId', 'assigneeIds', 'dueDate', 'completedAt', 'createdAt', 'updatedAt', 'eventId', 'eventAt')}}",
             "id": "{{item.documentId}}",
-            "name": "{{item.name}}",
-            "description": "{{item.description}}",
-            "type": "{{item.type}}",
-            "priority": "{{item.priority}}",
-            "status": "{{item.taskStatus}}",
-            "dueDate": "{{item.dueDate}}",
-            "completedAt": "{{item.completedAt}}",
             "cardId": "{{item.card.documentId}}",
-            "cardTitle": "{{item.card.title}}",
             "assigneeIds": "{{map(item.assignees, 'documentId')}}",
-            "createdAt": "{{item.createdAt}}",
-            "updatedAt": "{{item.updatedAt}}",
+            "dueDate": "{{if(item.dueDate, parseDate(item.dueDate, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.dueDate)}}",
+            "completedAt": "{{if(item.completedAt, parseDate(item.completedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.completedAt)}}",
+            "createdAt": "{{if(item.createdAt, parseDate(item.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.createdAt)}}",
+            "updatedAt": "{{if(item.updatedAt, parseDate(item.updatedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.updatedAt)}}",
             "eventId": "{{item.documentId}}:{{item.completedAt}}",
-            "eventAt": "{{item.completedAt}}"
+            "eventAt": "{{if(item.completedAt, parseDate(item.completedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.completedAt)}}"
         },
         "trigger": {
             "type": "date",
             "order": "desc",
             "id": "{{item.documentId}}:{{item.completedAt}}",
-            "date": "{{item.completedAt}}"
+            "date": "{{parseDate(item.completedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ')}}"
         }
     },
     "pagination": {

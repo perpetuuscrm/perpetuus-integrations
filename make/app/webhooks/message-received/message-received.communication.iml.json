@@ -1,10 +1,11 @@
 {
     "condition": "{{body.type == 'message.received'}}",
     "output": {
+        "{{...}}": "{{omit(body.data, 'id', 'content', 'messageType', 'sentAt', 'senderId', 'senderName', 'senderType', 'attachments', 'conversationId', 'conversationStatus', 'inboxId', 'contactId', 'cardId', 'boardId', 'phaseId', 'phaseName', 'eventId', 'eventAt', 'webhookEventId')}}",
         "id": "{{body.data.message.id}}",
         "content": "{{body.data.message.content}}",
         "messageType": "{{body.data.message.messageType}}",
-        "sentAt": "{{body.data.message.createdAt}}",
+        "sentAt": "{{if(body.data.message.createdAt, parseDate(body.data.message.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), body.data.message.createdAt)}}",
         "senderId": "{{body.data.message.sender.id}}",
         "senderName": "{{body.data.message.sender.name}}",
         "senderType": "{{body.data.message.sender.type}}",
@@ -13,16 +14,12 @@
         "conversationStatus": "{{body.data.conversation.status}}",
         "inboxId": "{{body.data.conversation.inboxId}}",
         "contactId": "{{body.data.contact.documentId}}",
-        "contactName": "{{body.data.contact.name}}",
-        "contactEmail": "{{body.data.contact.email}}",
-        "contactPhone": "{{body.data.contact.phone}}",
         "cardId": "{{body.data.card.documentId}}",
-        "cardTitle": "{{body.data.card.title}}",
         "boardId": "{{body.data.card.board.documentId}}",
         "phaseId": "{{body.data.card.currentPhase.documentId}}",
         "phaseName": "{{body.data.card.currentPhase.name}}",
         "eventId": "{{body.data.message.id}}",
-        "eventAt": "{{ifempty(body.data.message.createdAt, body.timestamp)}}",
+        "eventAt": "{{if(ifempty(body.data.message.createdAt, body.timestamp), parseDate(ifempty(body.data.message.createdAt, body.timestamp), 'YYYY-MM-DDTHH:mm:ss.SSSZ'), ifempty(body.data.message.createdAt, body.timestamp))}}",
         "webhookEventId": "{{body.id}}"
     }
 }

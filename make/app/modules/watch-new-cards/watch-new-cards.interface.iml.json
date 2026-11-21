@@ -10,43 +10,8 @@
         "type": "text"
     },
     {
-        "name": "boardId",
-        "label": "Board ID",
-        "type": "text"
-    },
-    {
-        "name": "phaseId",
-        "label": "Phase ID",
-        "type": "text"
-    },
-    {
-        "name": "phaseName",
-        "label": "Phase name",
-        "type": "text"
-    },
-    {
-        "name": "phaseEnteredAt",
-        "label": "Phase entered at",
-        "type": "date"
-    },
-    {
-        "name": "contactId",
-        "label": "Contact ID",
-        "type": "text"
-    },
-    {
-        "name": "contactName",
-        "label": "Contact name",
-        "type": "text"
-    },
-    {
-        "name": "contactEmail",
-        "label": "Contact email",
-        "type": "text"
-    },
-    {
-        "name": "contactPhone",
-        "label": "Contact phone",
+        "name": "description",
+        "label": "Description",
         "type": "text"
     },
     {
@@ -60,9 +25,100 @@
         "type": "date"
     },
     {
-        "name": "description",
-        "label": "Description",
+        "name": "boardId",
+        "label": "Board ID",
         "type": "text"
+    },
+    {
+        "name": "board",
+        "label": "Board",
+        "type": "collection",
+        "spec": [
+            {
+                "name": "documentId",
+                "label": "Board ID",
+                "type": "text"
+            },
+            {
+                "name": "name",
+                "label": "Name",
+                "type": "text"
+            }
+        ]
+    },
+    {
+        "name": "phaseId",
+        "label": "Phase ID",
+        "type": "text"
+    },
+    {
+        "name": "phaseName",
+        "label": "Phase name",
+        "type": "text"
+    },
+    {
+        "name": "currentPhaseEnteredAt",
+        "label": "Phase entered at",
+        "type": "date"
+    },
+    {
+        "name": "currentPhase",
+        "label": "Phase",
+        "type": "collection",
+        "spec": [
+            {
+                "name": "documentId",
+                "label": "Phase ID",
+                "type": "text"
+            },
+            {
+                "name": "name",
+                "label": "Name",
+                "type": "text"
+            },
+            {
+                "name": "slug",
+                "label": "Slug",
+                "type": "text"
+            },
+            {
+                "name": "order",
+                "label": "Order",
+                "type": "number"
+            }
+        ]
+    },
+    {
+        "name": "contactId",
+        "label": "Contact ID",
+        "type": "text"
+    },
+    {
+        "name": "contact",
+        "label": "Contact",
+        "type": "collection",
+        "spec": [
+            {
+                "name": "documentId",
+                "label": "Contact ID",
+                "type": "text"
+            },
+            {
+                "name": "name",
+                "label": "Name",
+                "type": "text"
+            },
+            {
+                "name": "email",
+                "label": "Email",
+                "type": "text"
+            },
+            {
+                "name": "phone",
+                "label": "Phone",
+                "type": "text"
+            }
+        ]
     },
     {
         "name": "tagIds",
@@ -70,7 +126,7 @@
         "type": "array",
         "spec": {
             "type": "text",
-            "label": "ID"
+            "label": "Tag ID"
         }
     },
     {
@@ -83,10 +139,154 @@
         }
     },
     {
+        "name": "tags",
+        "label": "Tags",
+        "type": "array",
+        "spec": {
+            "type": "collection",
+            "label": "Tag",
+            "spec": [
+                {
+                    "name": "documentId",
+                    "label": "Tag ID",
+                    "type": "text"
+                },
+                {
+                    "name": "name",
+                    "label": "Name",
+                    "type": "text"
+                },
+                {
+                    "name": "slug",
+                    "label": "Slug",
+                    "type": "text"
+                },
+                {
+                    "name": "color",
+                    "label": "Color",
+                    "type": "text"
+                }
+            ]
+        }
+    },
+    {
+        "name": "assigneeIds",
+        "label": "Assignee IDs",
+        "type": "array",
+        "spec": {
+            "type": "text",
+            "label": "Assignee ID"
+        }
+    },
+    {
+        "name": "assignees",
+        "label": "Assignees",
+        "type": "array",
+        "spec": {
+            "type": "collection",
+            "label": "Assignee",
+            "spec": [
+                {
+                    "name": "documentId",
+                    "label": "Assignee ID",
+                    "type": "text"
+                },
+                {
+                    "name": "displayName",
+                    "label": "Display name",
+                    "type": "text"
+                },
+                {
+                    "name": "role",
+                    "label": "Role",
+                    "type": "text"
+                }
+            ]
+        }
+    },
+    {
         "name": "fields",
         "label": "Custom fields",
         "type": "collection",
         "spec": []
+    },
+    {
+        "name": "fieldData",
+        "label": "Custom field values",
+        "type": "array",
+        "spec": {
+            "type": "collection",
+            "label": "Custom field value",
+            "spec": [
+                {
+                    "name": "documentId",
+                    "label": "Value ID",
+                    "type": "text"
+                },
+                {
+                    "name": "value",
+                    "label": "Value",
+                    "type": "any"
+                },
+                {
+                    "name": "field",
+                    "label": "Field",
+                    "type": "collection",
+                    "spec": [
+                        {
+                            "name": "documentId",
+                            "label": "Field ID",
+                            "type": "text"
+                        },
+                        {
+                            "name": "label",
+                            "label": "Label",
+                            "type": "text"
+                        },
+                        {
+                            "name": "slug",
+                            "label": "Slug",
+                            "type": "text"
+                        },
+                        {
+                            "name": "type",
+                            "label": "Type",
+                            "type": "text"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    {
+        "name": "creationSource",
+        "label": "Creation source",
+        "type": "text"
+    },
+    {
+        "name": "externalSourceId",
+        "label": "External source ID",
+        "type": "text"
+    },
+    {
+        "name": "conversationStatus",
+        "label": "Conversation status",
+        "type": "text"
+    },
+    {
+        "name": "lastMessageAt",
+        "label": "Last message at",
+        "type": "date"
+    },
+    {
+        "name": "lastMessagePreview",
+        "label": "Last message preview",
+        "type": "text"
+    },
+    {
+        "name": "unreadCount",
+        "label": "Unread messages",
+        "type": "number"
     },
     {
         "name": "createdAt",
@@ -105,7 +305,7 @@
     },
     {
         "name": "eventAt",
-        "label": "Event at",
+        "label": "Event date",
         "type": "date"
     }
 ]

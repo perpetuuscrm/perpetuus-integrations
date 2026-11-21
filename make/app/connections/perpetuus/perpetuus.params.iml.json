@@ -6,17 +6,5 @@
         "required": true,
         "editable": true,
         "help": "Your Perpetuus API key, starting with `ppt_`. In Perpetuus, go to **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar editor → Conectar novo editor**, choose the validity and the `crm:write` scope (it includes `crm:read`). The key is shown only once."
-    },
-    {
-        "name": "baseUrl",
-        "type": "text",
-        "label": "API base URL",
-        "advanced": true,
-        "editable": true,
-        "default": "https://api.perpetuus.com.br/api",
-        "validate": {
-            "pattern": "^https://[^\\s/]+(/[^\\s]*)?[^/\\s]$"
-        },
-        "help": "Leave the default (`https://api.perpetuus.com.br/api`) unless Perpetuus support gave you another address. It must start with `https://` and must not end with a slash."
     }
 ]

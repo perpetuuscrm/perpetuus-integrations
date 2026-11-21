@@ -17,15 +17,34 @@
     "conversationStatus": "open",
     "inboxId": "ib_7",
     "contactId": "ct7h2k9q4w1e8r5t3y6u0i",
-    "contactName": "Maria Silva",
-    "contactEmail": "maria.silva@example.com",
-    "contactPhone": "+5511999990000",
     "cardId": "cd3f8a1b6c9d2e7f4a0b5c",
-    "cardTitle": "Maria Silva - Website",
     "boardId": "bd1a2b3c4d5e6f7a8b9c0d",
     "phaseId": "ph9z8y7x6w5v4u3t2s1r0q",
     "phaseName": "Proposal",
     "eventId": "msg_8f2a1c",
     "eventAt": "2026-11-16T13:05:00.000Z",
-    "webhookEventId": "evt_3f9c2a7b1d4e8f60a5b2c9d1"
+    "webhookEventId": "evt_3f9c2a7b1d4e8f60a5b2c9d1",
+    "contact": {
+        "documentId": "ct7h2k9q4w1e8r5t3y6u0i",
+        "name": "Maria Silva",
+        "email": "maria.silva@example.com",
+        "phone": "+5511999990000"
+    },
+    "card": {
+        "documentId": "cd3f8a1b6c9d2e7f4a0b5c",
+        "title": "Maria Silva - Website",
+        "board": {
+            "documentId": "bd1a2b3c4d5e6f7a8b9c0d",
+            "name": "Sales"
+        },
+        "currentPhase": {
+            "documentId": "ph9z8y7x6w5v4u3t2s1r0q",
+            "name": "Proposal"
+        }
+    },
+    "conversation": {
+        "id": "cv_42",
+        "status": "open",
+        "inboxId": "ib_7"
+    }
 }

@@ -1,6 +1,6 @@
 {
     "temp": {
-        "digits": "{{replace(ifempty(parameters.value, ''), /\\D+/g, '')}}"
+        "digits": "{{replace(ifempty(parameters.value, ''), '/[^0-9]/g', '')}}"
     },
     "condition": "{{parameters.searchBy != 'phone' || length(temp.digits) > 0}}",
     "url": "/contacts",
@@ -15,21 +15,11 @@
         "limit": "{{ifempty(parameters.limit, 100)}}",
         "iterate": "{{body.data}}",
         "output": {
+            "{{...}}": "{{omit(item, 'id', 'contactType', 'createdAt', 'updatedAt')}}",
             "id": "{{item.documentId}}",
-            "name": "{{item.name}}",
-            "email": "{{item.email}}",
-            "phone": "{{item.phone}}",
-            "contactType": "{{switch(item.contact_type, 'pessoa', 'person', 'empresa', 'company')}}",
-            "cpf": "{{item.cpf}}",
-            "cnpj": "{{item.cnpj}}",
-            "address": "{{item.address}}",
-            "city": "{{item.city}}",
-            "state": "{{item.state}}",
-            "country": "{{item.country}}",
-            "postalCode": "{{item.postal_code}}",
-            "customFields": "{{item.customFields}}",
-            "createdAt": "{{item.createdAt}}",
-            "updatedAt": "{{item.updatedAt}}"
+            "contactType": "{{switch(item.contact_type, 'pessoa', 'person', 'empresa', 'company', 'person', 'person', 'company', 'company')}}",
+            "createdAt": "{{if(item.createdAt, parseDate(item.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.createdAt)}}",
+            "updatedAt": "{{if(item.updatedAt, parseDate(item.updatedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.updatedAt)}}"
         }
     },
     "pagination": {

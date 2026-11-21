@@ -25,7 +25,7 @@
         "type": "text"
     },
     {
-        "name": "status",
+        "name": "taskStatus",
         "label": "Status",
         "type": "text"
     },
@@ -40,14 +40,31 @@
         "type": "date"
     },
     {
+        "name": "recurrence",
+        "label": "Recurrence",
+        "type": "text"
+    },
+    {
         "name": "cardId",
         "label": "Card ID",
         "type": "text"
     },
     {
-        "name": "cardTitle",
-        "label": "Card title",
-        "type": "text"
+        "name": "card",
+        "label": "Card",
+        "type": "collection",
+        "spec": [
+            {
+                "name": "documentId",
+                "label": "Card ID",
+                "type": "text"
+            },
+            {
+                "name": "title",
+                "label": "Title",
+                "type": "text"
+            }
+        ]
     },
     {
         "name": "assigneeIds",
@@ -55,7 +72,33 @@
         "type": "array",
         "spec": {
             "type": "text",
-            "label": "ID"
+            "label": "Assignee ID"
+        }
+    },
+    {
+        "name": "assignees",
+        "label": "Assignees",
+        "type": "array",
+        "spec": {
+            "type": "collection",
+            "label": "Assignee",
+            "spec": [
+                {
+                    "name": "documentId",
+                    "label": "Assignee ID",
+                    "type": "text"
+                },
+                {
+                    "name": "displayName",
+                    "label": "Display name",
+                    "type": "text"
+                },
+                {
+                    "name": "role",
+                    "label": "Role",
+                    "type": "text"
+                }
+            ]
         }
     },
     {
@@ -75,7 +118,7 @@
     },
     {
         "name": "eventAt",
-        "label": "Event at",
+        "label": "Event date",
         "type": "date"
     }
 ]

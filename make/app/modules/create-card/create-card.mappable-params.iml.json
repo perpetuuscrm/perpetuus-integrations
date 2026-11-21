@@ -45,7 +45,7 @@
     {
         "name": "contactId",
         "type": "select",
-        "label": "Contact ID",
+        "label": "Contact",
         "options": "rpc://listContacts",
         "mode": "edit",
         "help": "Contact linked to the card. Map a contact ID, for example from Create or update a contact."

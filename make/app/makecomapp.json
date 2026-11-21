@@ -72,7 +72,7 @@
             },
             "watchCompletedTasks": {
                 "label": "Watch completed tasks",
-                "description": "Triggers when a task is completed. A task reopened and completed again does not trigger a second time.",
+                "description": "Triggers when a task is completed. A task that is reopened and completed again triggers again when it gets a new completion date, which the Perpetuus app records.",
                 "moduleType": "trigger",
                 "actionCrud": null,
                 "connection": "perpetuus",
@@ -344,6 +344,15 @@
                     "communication": "rpcs/list-card-fields/list-card-fields.communication.iml.json",
                     "params": "rpcs/list-card-fields/list-card-fields.params.iml.json"
                 }
+            },
+            "listTaskStatuses": {
+                "label": "List task statuses",
+                "connection": "perpetuus",
+                "altConnection": null,
+                "codeFiles": {
+                    "communication": "rpcs/list-task-statuses/list-task-statuses.communication.iml.json",
+                    "params": "rpcs/list-task-statuses/list-task-statuses.params.iml.json"
+                }
             }
         },
         "webhook": {
@@ -506,6 +515,10 @@
                     {
                         "local": "listCardFields",
                         "remote": "listCardFields"
+                    },
+                    {
+                        "local": "listTaskStatuses",
+                        "remote": "listTaskStatuses"
                     }
                 ],
                 "function": [],

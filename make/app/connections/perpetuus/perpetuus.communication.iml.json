@@ -1,5 +1,5 @@
 {
-    "url": "{{ifempty(parameters.baseUrl, 'https://api.perpetuus.com.br/api')}}/auth/token-info",
+    "url": "https://api.perpetuus.com.br/api/auth/token-info",
     "method": "GET",
     "headers": {
         "Authorization": "Bearer {{parameters.apiKey}}"
@@ -7,7 +7,7 @@
     "response": {
         "valid": {
             "condition": "{{body.data.organization.documentId}}",
-            "message": "Perpetuus did not return the organization of this API key. Check the API base URL."
+            "message": "Perpetuus did not return the organization of this API key. Check that the key is a Perpetuus API key starting with `ppt_`."
         },
         "error": {
             "401": {

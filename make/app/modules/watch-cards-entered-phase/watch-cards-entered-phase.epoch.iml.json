@@ -3,7 +3,7 @@
         "limit": 300,
         "output": {
             "label": "{{item.title}}",
-            "date": "{{item.currentPhaseEnteredAt}}"
+            "date": "{{parseDate(item.currentPhaseEnteredAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ')}}"
         }
     }
 }

@@ -10,7 +10,7 @@
                 {
                     "name": "cardId",
                     "type": "select",
-                    "label": "Card ID",
+                    "label": "Card",
                     "required": true,
                     "options": "rpc://listCards",
                     "mode": "edit",

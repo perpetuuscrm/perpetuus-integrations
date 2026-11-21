@@ -10,29 +10,19 @@
         "limit": "{{parameters.limit}}",
         "iterate": "{{body.data}}",
         "output": {
+            "{{...}}": "{{omit(item, 'id', 'contactType', 'createdAt', 'updatedAt', 'eventId', 'eventAt')}}",
             "id": "{{item.documentId}}",
-            "name": "{{item.name}}",
-            "email": "{{item.email}}",
-            "phone": "{{item.phone}}",
-            "contactType": "{{switch(item.contact_type, 'pessoa', 'person', 'empresa', 'company')}}",
-            "cpf": "{{item.cpf}}",
-            "cnpj": "{{item.cnpj}}",
-            "address": "{{item.address}}",
-            "city": "{{item.city}}",
-            "state": "{{item.state}}",
-            "country": "{{item.country}}",
-            "postalCode": "{{item.postal_code}}",
-            "customFields": "{{item.customFields}}",
-            "createdAt": "{{item.createdAt}}",
-            "updatedAt": "{{item.updatedAt}}",
+            "contactType": "{{switch(item.contact_type, 'pessoa', 'person', 'empresa', 'company', 'person', 'person', 'company', 'company')}}",
+            "createdAt": "{{if(item.createdAt, parseDate(item.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.createdAt)}}",
+            "updatedAt": "{{if(item.updatedAt, parseDate(item.updatedAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.updatedAt)}}",
             "eventId": "{{item.documentId}}",
-            "eventAt": "{{item.createdAt}}"
+            "eventAt": "{{if(item.createdAt, parseDate(item.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ'), item.createdAt)}}"
         },
         "trigger": {
             "type": "date",
             "order": "desc",
             "id": "{{item.documentId}}",
-            "date": "{{item.createdAt}}"
+            "date": "{{parseDate(item.createdAt, 'YYYY-MM-DDTHH:mm:ss.SSSZ')}}"
         }
     },
     "pagination": {

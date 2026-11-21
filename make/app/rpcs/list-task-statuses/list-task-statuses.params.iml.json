@@ -1,0 +1,8 @@
+[
+    {
+        "name": "boardId",
+        "type": "text",
+        "label": "Board ID",
+        "required": true
+    }
+]

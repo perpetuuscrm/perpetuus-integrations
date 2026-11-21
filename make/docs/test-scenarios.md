@@ -34,14 +34,15 @@ Run each trigger once with **Run once** after the action steps of scenario 1B cr
 | 1 | Tools → Set multiple variables | `email = make-review-{{now}}@example.com`, `phone = (11) 98888-{{formatDate(now; "mmss")}}` |
 | 2 | Perpetuus CRM → **Create or update a contact** | Email `{{1.email}}`, Phone `{{1.phone}}`, Name `Make Review`, Contact type *Person*, City `São Paulo`, Custom fields `origem = Make` |
 | 3 | Perpetuus CRM → **Create or update a contact** | Same email, Name `Make Review (updated)`; expect `created = false`, `matchedBy = email` |
-| 4 | Perpetuus CRM → **Create a card** | Board *Make review*, Title `Make Review card`, Contact ID `{{2.id}}`, Value `1500.50`, Due date `{{addDays(now; 7)}}`, the custom fields that loaded (including the required one), Phase *Proposal* (forces the extra move request) |
-| 5 | Perpetuus CRM → **Add tags to a card** | Board *Make review*, Card ID `{{4.id}}`, Tags *Hot lead*, *Make* |
-| 6 | Perpetuus CRM → **Move a card to a phase** | Board *Make review*, Card ID `{{4.id}}`, Phase *Won*, Reason `Make review` |
-| 7 | Perpetuus CRM → **Create a task** | Name `Send the proposal`, Card ID `{{4.id}}`, Due date `{{addDays(now; 1)}}`, Type *Follow-up*, Priority *High*, Assignees one member |
+| 4 | Perpetuus CRM → **Create a card** | Board *Make review*, Title `Make Review card`, Contact `{{2.id}}`, Value `1500.50`, Due date `{{addDays(now; 7)}}`, the custom fields that loaded (including the required one), Phase *Proposal* (forces the extra move request) |
+| 5 | Perpetuus CRM → **Add tags to a card** | Board *Make review*, Card `{{4.id}}`, Tags *Hot lead*, *Make* |
+| 6 | Perpetuus CRM → **Move a card to a phase** | Board *Make review*, Card `{{4.id}}`, Phase *Won*, Reason `Make review` |
+| 7 | Perpetuus CRM → **Create a task** | Name `Send the proposal`, Board *Make review*, Card `{{4.id}}`, Due date `{{addDays(now; 1)}}`, Type *Follow-up*, Priority *High*, Assignees one member, Status *pending* (from the board's task statuses) |
 | 8 | Perpetuus CRM → **Make an API call** | URL `/tasks/{{7.id}}`, Method `PUT`, Body `{"data": {"taskStatus": "completed"}}` (use the done status of the board) to complete the task for scenario 1B |
 
-Expected: every module succeeds; module 4 returns `phaseName = Proposal` and the custom fields in
-`fields`; module 5 returns both tags in `tagNames` plus the ones the card already had; module 6
+Expected: every module succeeds and returns the whole API record (`fieldData`, `contact`,
+`currentPhase`, `tags`…) plus the overrides (`id`, `phaseName`, `tagNames`, numeric `value`, parsed
+dates); module 4 returns `phaseName = Proposal` and the custom fields in `fields`; module 5 returns both tags in `tagNames` plus the ones the card already had; module 6
 returns `phaseName = Won`.
 
 **1B. Triggers** (one scenario per trigger, or one scenario with the trigger and a Tools → Set
@@ -57,7 +58,7 @@ variable after it)
 
 Run each trigger a second time without new data: it must return **no bundles** (deduplication).
 Then move the card back to *Proposal* and again to *Won* and run 1B-3: the card must trigger again
-(new `phaseEnteredAt`).
+(new `currentPhaseEnteredAt`).
 
 **1C. Instant triggers** (one scenario each, turned on before 1A)
 
@@ -76,10 +77,10 @@ Creating the webhook must create a subscription in Perpetuus (**Settings → Web
 
 | # | Module | Settings | Expected |
 |---|--------|----------|----------|
-| 1 | Perpetuus CRM → **Search contacts** | Search by *Text*, Value `teste`, Limit empty | 100 bundles over two requests (pages of 100, capped at 100) |
+| 1 | Perpetuus CRM → **Search contacts** | Search by *Text*, Value `teste`, Limit `150` | up to 150 bundles over two requests (pages of 100) |
 | 2 | Perpetuus CRM → **Search contacts** | Search by *Email*, Value one test email | 1 bundle |
 | 3 | Perpetuus CRM → **Search contacts** | Search by *Phone*, Value `(11) 98888-…` of scenario 1 | the contact of scenario 1 |
-| 4 | Perpetuus CRM → **Search cards** | Board *Make review*, Limit `100` | 100 bundles, two requests in the log |
+| 4 | Perpetuus CRM → **Search cards** | Board *Make review*, Limit `150` | every card of the board (126 in the test org), two requests in the log |
 | 5 | Perpetuus CRM → **Search cards** | Board *Make review*, Title contains `Make Review`, Phase *Won* | the card of scenario 1 |
 
 To see two requests with fewer records, temporarily lower `pagination[pageSize]` in the module
@@ -89,7 +90,7 @@ communication of the testing app only (never in the deployed production app).
 
 | # | Module | Settings | Expected error |
 |---|--------|----------|----------------|
-| 1 | Perpetuus CRM → **Move a card to a phase** | Board *Make review*, Card ID `does-not-exist`, Phase *Won* | `[404] Not found in Perpetuus: …` (RuntimeError) |
+| 1 | Perpetuus CRM → **Move a card to a phase** | Board *Make review*, Card `does-not-exist`, Phase *Won* | `[404] Not found in Perpetuus: …` (RuntimeError) |
 | 2 | Perpetuus CRM → **Create a card** | Board *Make review*, Title only (required form field empty) | `[400] Perpetuus rejected the request: … Details: …` (DataError) |
 | 3 | Connection with a revoked key, any module | — | `[401] Invalid or expired Perpetuus API key…` |
 | 4 | Connection with a key that only has `crm:read`, **Create a task** | — | `[403] The Perpetuus API key is missing the "crm:write" scope…` |

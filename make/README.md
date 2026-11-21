@@ -69,15 +69,23 @@ blocked for external developers and needs a separate request to Make.
 | Tasks | `createTask` | Create a task | Action (create) | `createTask` | `POST /tasks` |
 | Contacts | `searchContacts` | Search contacts | Search | `findContact` | `GET /contacts` |
 | Cards | `searchCards` | Search cards | Search | `findCard` | `GET /boards/{boardId}/cards` |
-| Other | `makeApiCall` | Make an API call | Universal | — | any route under the base URL |
+| Other | `makeApiCall` | Make an API call | Universal | — | any route under `https://api.perpetuus.com.br/api` |
 
 RPCs: `listBoards`, `listPhases`, `listTags`, `listMembers`, `listCards`, `listContacts`
-(option lists, up to 300 items with pagination) and `listCardFields` (dynamic fields).
+(option lists, up to 300 items with pagination), `listTaskStatuses` (the `taskStatuses` of
+`GET /boards/{boardId}`, for the Status of **Create a task**) and `listCardFields` (dynamic fields).
 
-Input and output names are the contract's (`boardId`, `phaseId`, `tagIds`, `contactType`,
-`phaseEnteredAt`, `customFields`…). Outputs are flat and typed in the interface (dates as `date`,
-`value` as number, ID lists as arrays of text); `fields` and `customFields` are collections.
-Triggers add `eventId` and `eventAt`.
+Input names are the contract's (`boardId`, `phaseId`, `tagIds`, `contactType`…). Following the
+Make app review (#2372373), every module except **Make an API call** returns the **whole API
+record** (`"{{...}}": "{{item}}"` / `"{{body}}"` as the first output key), so fields the API adds
+later (and `fieldData`, `contact`, `currentPhase`, `tags`, `assignees`) reach the user without an app
+change. After the spread come a few overrides: `id` (the `documentId`), `boardId`, `phaseId`,
+`phaseName`, `contactId`, `tagIds`/`tagNames`, `assigneeIds`, `value` as a number, `contactType`
+translated to `person`/`company`, and every date (`createdAt`, `updatedAt`, `dueDate`,
+`currentPhaseEnteredAt`, `completedAt`, `eventAt`…) parsed with
+`parseDate(…, 'YYYY-MM-DDTHH:mm:ss.SSSZ')`, the format the API returns. Triggers add `eventId` and
+`eventAt`. The interfaces describe the useful part of each record. Errors are handled once in the
+Base; write requests only override 500/502/503/504 so Make does not retry them automatically.
 
 **Create a card** loads the custom fields of the chosen board below the board field (from
 `GET /boards/{boardId}/structure?include=phases,fields`). Fields required by the form phase are
@@ -105,8 +113,8 @@ are unchanged and remain available (Task Completed is polling only).
 - **API key** (`apiKey`, password, required): a Perpetuus key `ppt_…` with `crm:write` (it includes
   `crm:read`). In Perpetuus: **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar
   editor → Conectar novo editor**.
-- **API base URL** (`baseUrl`, advanced, optional): defaults to `https://api.perpetuus.com.br/api`;
-  must be `https://` and must not end with `/`.
+- The API address is fixed (`https://api.perpetuus.com.br/api`) in the Base and the connection; it
+  is not a connection parameter, so a stored key can only be sent to Perpetuus.
 - Validation: `GET /auth/token-info`. The connection is labelled `Organization (email)`.
 - The key goes in `Authorization: Bearer …` from the Base and the connection, and
   `request.headers.authorization` is sanitized in both, so it never appears in Make logs.
