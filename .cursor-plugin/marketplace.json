@@ -1,0 +1,17 @@
+{
+  "name": "perpetuus",
+  "owner": {
+    "name": "Perpetuus",
+    "email": "contato@perpetuus.com.br"
+  },
+  "metadata": {
+    "description": "Official Perpetuus CRM plugins for Cursor."
+  },
+  "plugins": [
+    {
+      "name": "perpetuus-crm",
+      "source": "cursor",
+      "description": "Work in Perpetuus CRM from Cursor through the official Perpetuus MCP server (OAuth)."
+    }
+  ]
+}
