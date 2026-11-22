@@ -1,0 +1,26 @@
+{
+  "name": "perpetuus-pluga-adapter",
+  "version": "1.0.0",
+  "description": "Perpetuus CRM integration for Pluga: HTTP adapter implementing the Pluga Developers contract on top of the Perpetuus REST API v1 and webhooks v1.",
+  "private": true,
+  "license": "MIT",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/contract.test.js test/relay.test.js",
+    "test:live": "node --test --test-concurrency=1 test/live.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/perpetuuscrm/perpetuus-integrations.git",
+    "directory": "pluga"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "yaml": "^2.9.1"
+  }
+}

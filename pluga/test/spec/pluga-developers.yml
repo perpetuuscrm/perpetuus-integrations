@@ -1,0 +1,734 @@
+# Copy of https://developers.pluga.co/api-docs/pluga-developers.yml downloaded 2026-11-22 (Pluga Developers, OpenAPI 3.1).
+openapi: 3.1.0
+info:
+  title: 'Pluga Developers'
+  version: 1.0.0
+  description: >
+    Esta documentação é destinada a desenvolvedores que desejam integrar suas aplicações com a Pluga por meio da criação de uma API, seguindo os endpoints especificados a seguir.
+    <br>Para que possamos cadastrar os dados do seu aplicativo, bem como suas respectivas Actions e Triggers em nosso banco de dados, é necessário enviar um arquivo JSON para o e-mail integrations@pluga.co, seguindo a estrutura descrita abaixo:
+
+    ```json
+    
+    {
+      "app": {
+        "id": "example_app",
+        "base_url": "https://api.example.com"
+      },
+      "actions": [
+        { "id": "action1_key" },
+        { "id": "action2_key" }
+      ],
+      triggers: [
+        { "id": "trigger1_key" },
+        { "id": "trigger2_key" }
+      ]
+    }
+
+    ```
+
+    Os atributos acimas tem a seguinte finalidade:
+      - `app`: Um objeto representando o aplicativo. Deve conter:
+        - `id`: Identificador único do aplicativo (por exemplo, "example_app").
+        - `base_url`: URL base da API do aplicativo (por exemplo, "https://api.example.com").
+      - `actions`: Array de objetos representando as actions (ações) disponíveis no aplicativo. Cada objeto no array deve conter:
+        - `id`: Identificador único da ação (por exemplo, "action1_key").
+      - `triggers`: Array de objetos representando os triggers (gatilhos) disponíveis no aplicativo. Cada objeto no array deve conter:
+        - `id`: Identificador único do gatilho (por exemplo, "trigger1_key").
+
+servers:
+  - url: "{server}"
+    description: 'Your API Base URL'
+    variables:
+      server:
+        default: 'https://api.example.com/v1'
+        description: 'Base URL of your API'
+
+paths:
+  /manifest.json:
+    get:
+      tags: [BasicInfo]
+      summary: Obter informações sobre a configuração do aplicativo
+      responses:
+        "200":
+          $ref: "#/components/responses/successAppConfigResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /ping:
+    get:
+      tags: [BasicInfo]
+      summary: Validar token de acesso
+      security:
+        - BearerAuth: []
+      description: Este endpoint é usado para validar o token de acesso e retornar informações do usuário.
+      responses:
+        "200":
+          description: Token validado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/pingResponse"
+
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /helpers/{helper_id}:
+    get:
+      tags: [Helpers]
+      summary: Obter opções para um campo de seleção específico
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: helper_id
+          schema:
+            type: string
+          required: true
+          description: ID do Helper para o caminho da API (por exemplo, "stages_list")
+      responses:
+        "200":
+          description: >
+            Retorna uma lista de opções para um campo de seleção específico.
+            Cada objeto no array inclui os seguintes componentes:
+              - `label`: Um objeto contendo o nome localizado da opção.
+              - `value`: O valor a ser enviado para sua API.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    label:
+                      type: object
+                      properties:
+                        pt_BR: { type: string }
+                        en: { type: string }
+                    value: { type: string }
+                  required: [label, value]
+
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /actions/{action_id}/manifest.json:
+    get:
+      tags: [Actions]
+      summary: Obter informações sobre a configuração de uma Action
+      parameters:
+        - $ref: "#/components/parameters/action_id"
+      responses:
+        "200":
+          $ref: "#/components/responses/successActionConfigResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /actions/{action_id}/fields:
+    get:
+      tags: [Actions]
+      summary: Obter campos para uma Action específica
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/action_id"
+      responses:
+        "200":
+          description: >
+            A resposta contém um array de objetos representando os campos para a Action. Cada objeto no array inclui
+            os seguintes componentes:
+              - `key`: Um identificador único para o campo (por exemplo, "pipeline").  É possível utilizar **<a href="https://en.wikipedia.org/wiki/Dot_notation" target="_blank" rel="noopener noreferrer">dot notation</a>** para representar estruturas aninhadas, como <code>"deal.pipeline"</code>.
+              - `name`: Um objeto contendo os nomes localizados do campo.
+              - `description`: Um objeto contendo a descrição localizada sobre o campo, voltado para tirar dúvidas, ou indicar um padrão de envio de dados pelos clientes.
+              - `required`: Um indicador se o campo é obrigatório.
+              - `type`: O tipo do campo (por exemplo, "integer", "decimal", "string", "datetime", "textarea", "dropdown", "dropdown_multiple").
+
+            **As seguintes propriedades são apenas para os tipos dropdown ou dropdown_multiple**:
+              - `options`: Usado quando o campo possui uma lista estática de opções. Deve ser um array de objetos com a seguinte estrutura:
+                - `label`: Um objeto contendo o nome localizado da opção.
+                - `value`: O valor a ser enviado para sua API.
+              - `helper_id`: Necessário quando as opções do campo devem ser buscadas dinamicamente na sua API. Deve conter o ID do endpoint que fornece as opções (por exemplo, "pipelines_list").
+              - `depends_on`: Um array de chaves de campos anteriores, indicando dependências se as opções do campo dependem do valor de outro campo.
+
+            A resposta abaixo possui 3 exemplos de campos:
+              - Um campo padrão
+              - Um campo dropdown estático
+              - Um campo dropdown dinâmico
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: "#/components/schemas/defaultField"
+                    - $ref: "#/components/schemas/staticDropdownField"
+                    - $ref: "#/components/schemas/dinamicDropdownField"
+
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /actions/{action_id}/attributes:
+    get:
+      tags: [Actions]
+      summary: Obter atributos para uma Action específica
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/action_id"
+      responses:
+        "200":
+          description: >
+            Este endpoint retorna um array de objetos representando os atributos disponíveis na resposta do POST da Action.
+            <br>Cada objeto no array inclui os seguintes componentes:
+              - `key`: Um identificador único para o atributo.  É possível utilizar **<a href="https://en.wikipedia.org/wiki/Dot_notation" target="_blank" rel="noopener noreferrer">dot notation</a>** para representar estruturas aninhadas, como <code>"deal.pipeline"</code>.
+              - `name`: Um objeto contendo os nomes localizados do atributo.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key: { type: string }
+                    name:
+                      type: object
+                      properties:
+                        pt_BR: { type: string }
+                        en: { type: string }
+                  required: [key, name]
+
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /actions/{action_id}:
+    post:
+      tags: [Actions]
+      summary: Enviar dados para sua API
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/action_id"
+      description: Envia dados para sua API.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/postRequestExample"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/postResponseExample"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /triggers/{trigger_id}/manifest.json:
+    get:
+      tags: [Triggers]
+      summary: Obter informações sobre a configuração de um Trigger
+      parameters:
+        - $ref: "#/components/parameters/trigger_id"
+      responses:
+        "200":
+          $ref: "#/components/responses/successTriggerConfigResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /triggers/{trigger_id}/attributes:
+    get:
+      tags: [Triggers]
+      summary: Obter atributos de um Trigger específico
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/trigger_id"
+      responses:
+        "200":
+          description: >
+            Este endpoint retorna um array de objetos representando os atributos disponíveis na resposta do Trigger.
+            <br>Cada objeto no array inclui os seguintes componentes:
+              - `key`: Um identificador único para o atributo.  É possível utilizar **<a href="https://en.wikipedia.org/wiki/Dot_notation" target="_blank" rel="noopener noreferrer">dot notation</a>** para representar estruturas aninhadas, como <code>"deal.pipeline"</code>.
+              - `name`: Um objeto contendo os nomes localizados do atributo.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key: { type: string }
+                    name:
+                      type: object
+                      properties:
+                        pt_BR: { type: string }
+                        en: { type: string }
+                  required: [key, name]
+
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /triggers/{trigger_id}/sample:
+    get:
+      tags: [Triggers]
+      summary: Obtém dado real para teste de confirmação do funcionamento do Trigger
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/trigger_id"
+      responses:
+        "200":
+          description: >
+            Este endpoint deve retornar um objeto com dados reais do Trigger e deve incluir pelo menos os atributos listados no endpoint `/triggers/{trigger_id}/attributes`.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                  name: { type: string }
+                  email: { type: string, format: email }
+                  value: { type: number, format: float }
+                  created_at: { type: string, format: date-time }
+
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /triggers/{trigger_id}/subscribe:
+    post:
+      tags: [Triggers]
+      summary: Assinatura (Subscribe) do Webhook
+      description: >
+        Este endpoint é utilizado para registrar a URL do webhook da Pluga no seu sistema. 
+        Sempre que um evento ocorrer, sua aplicação deverá enviar uma notificação para a URL fornecida.
+        **Nota:** Este endpoint é necessário apenas para Triggers do tipo `rest_hook`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/trigger_id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: URL do webhook da Pluga onde as notificações devem ser enviadas
+                  example: "https://webhook.pluga.co/..."
+              additionalProperties: true
+              description: >
+                Além da URL obrigatória, este objeto recebe campos dinâmicos caso o Trigger tenha campos de configuração (configuration_fields). 
+                As propriedades enviadas correspondem aos `key` definidas na configuração (configuration_fields). 
+                Por exemplo, se houver um campo com `key: "document_id"`, ele será enviado como `"document_id": "123456"`.
+              required: [url]
+      responses:
+        "201":
+          description: Webhook registrado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Identificador único do webhook criado
+                    example: "webhook_123"
+                required: [id]
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /triggers/{trigger_id}/unsubscribe/{webhook_id}:
+    delete:
+      tags: [Triggers]
+      summary: Cancelamento (Unsubscribe) do Webhook
+      description: >
+        Este endpoint é utilizado para cancelar a assinatura de um webhook previamente registrado.
+        **Nota:** Este endpoint é necessário apenas para Triggers do tipo `rest_hook`.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/trigger_id"
+        - in: path
+          name: webhook_id
+          schema:
+            type: string
+          required: true
+          description: Identificador único do webhook a ser cancelado (retornado no endpoint de subscribe)
+      responses:
+        "204":
+          description: Webhook cancelado com sucesso
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    action_id:
+      in: path
+      name: action_id
+      schema:
+        type: string
+      required: true
+      description: Identificador único da Action (por exemplo, "upsert_deal")
+    
+    trigger_id:
+      in: path
+      name: trigger_id
+      schema:
+        type: string
+      required: true
+      description: Identificador único do Trigger (por exemplo, "created_deal")
+
+  responses:
+    successAppConfigResponse:
+      description: >
+        Recupera informações sobre a configuração do aplicativo.
+        A resposta inclui detalhes como:
+          - `version`: A versão das informações de configuração do aplicativo.
+          - `name`: O nome do App.
+          - `description`: Uma breve descrição localizada do aplicativo.
+          - `color`: A cor primária associada ao aplicativo (por exemplo, "#000000").
+          - `website`: A URL do site do aplicativo.
+          - `signup_url`: A URL para cadastro de usuários.
+          - `base_url`: A URL base para a API do aplicativo.
+          - `authentication`: Detalhes sobre o método de autenticação, incluindo:
+            - `access_token_label`: O rótulo localizado para o token de acesso.
+            - `access_token_tutorial`: Uma lista de etapas ou instruções para obter o token de acesso. Deve ser um array de objetos com a seguinte estrutura:
+              - `content`: Um objeto contendo o conteúdo localizado do tutorial.
+              - `img_url`: Um objeto contendo a URL da imagem associada ao tutorial.
+            - `webhook_tutorial`: Um objeto contendo o tutorial para configurar o webhook, caso aplicável (em casos que contenha algum Trigger do tipo webhook). Contém a seguinte estrutura:
+              - `webhook_page_url`: Um objeto contendo um campo de "link" e um "label" da seguinte forma:
+                - `link`: URL da página onde o webhook deve ser configurado na sua ferramenta.
+                - `label`: Um objeto contendo o nome localizado do campo que deve ser preenchido com o nome da página do link.
+              - `tutorial`: Um array de objetos com a seguinte estrutura:
+                - `content`: Um objeto contendo o conteúdo localizado do tutorial.
+                - `img_url`: Um objeto contendo a URL da imagem associada ao tutorial.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/appConfigResponse"
+
+    successActionConfigResponse:
+      description: >
+        A resposta contém um objeto representando a configuração da Action e deve incluir os seguintes componentes:
+          - `name`: Um objeto contendo os nomes localizados da Action.
+          - `task_name`: Um objeto contendo o nome da ação a ser feita pela Action, por exemplo: "Quando uma nova linha for criada no Google Sheets, **criar/atualizar um negócio no HubSpot**", a parte em negrito é o task_name. **Importante:** O task_name deve obrigatoriamente incluir o nome do aplicativo exatamente como está definido no atributo `name` do app.
+
+          - `configuration_fields`: Um array de campos necessários para a configuração da Action. **Importante:** Os campos definidos aqui não podem ter as mesmas chaves (`key`) que os campos definidos no endpoint `/actions/{action_id}/fields`. Cada campo pode ser um dos seguintes:
+            - `key`: Um identificador único para o campo (por exemplo, "pipeline").  É possível utilizar **<a href="https://en.wikipedia.org/wiki/Dot_notation" target="_blank" rel="noopener noreferrer">dot notation</a>** para representar estruturas aninhadas, como <code>"deal.pipeline"</code>.
+            - `name`: Um objeto contendo os nomes localizados do campo. (por exemplo, "pt_BR: Funil", "en: Pipeline").
+            - `description`: Um objeto contendo a descrição localizada sobre o campo, voltado para tirar dúvidas, ou indicar um padrão de envio de dados pelos clientes.
+            - `required`: Um indicador se o campo é obrigatório.
+            - `type`: O tipo do campo de configuração pode ser "dropdown" ou "dropdown_multiple". No caso de poder selecionar mais de uma opção deve ser o tipo "dropdown_multiple". O valor padrão é "dropdown" caso o atributo não seja enviado.
+            - `options`: Usado quando o campo possui uma lista estática de opções. Deve ser um array de objetos com a seguinte estrutura:
+              - `label`: Um objeto contendo o nome localizado da opção.
+              - `value`: O valor a ser enviado para sua API.
+            - `helper_id`: Necessário quando as opções do campo devem ser buscadas dinamicamente na sua API. Deve conter o ID do endpoint que fornece as opções (por exemplo, "pipelines_list").
+            - `depends_on`: Um array de chaves de campos anteriores, indicando dependências se as opções do campo dependem do valor de outro campo.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/actionConfigExample"
+
+    successTriggerConfigResponse:
+      description: >
+        A resposta contém um objeto representando a configuração do Trigger e deve incluir os seguintes componentes:
+          - `name`: Um objeto contendo os nomes localizados do Trigger.
+          - `task_name`: Um objeto contendo o nome do gatilho a ser disparado pelo Trigger, por exemplo: "**Quando uma nova linha for criada no Google Sheets**, criar/atualizar um negócio no HubSpot", a parte em negrito é o task_name. **Importante:** O task_name deve obrigatoriamente incluir o nome do aplicativo exatamente como está definido no atributo `name` do app.
+          - `type`: O tipo do Trigger pode ser `webhook` ou `rest_hook`. 
+            - **`webhook`**: A Pluga fornece uma URL para que sua API envie os dados sempre que um evento ocorrer. 
+            - **`rest_hook`**: Sua API permite que a Pluga registre uma assinatura de webhook através dos endpoints `/triggers/{trigger_id}/subscribe` e `/triggers/{trigger_id}/unsubscribe/{webhook_id}`. Quando um evento ocorrer, sua aplicação envia os dados para a URL registrada.
+          - `configuration_fields`: Um array de campos necessários para a configuração do Trigger. Esses campos permitem filtrar eventos com base em valores específicos configurados. Por exemplo, é possível configurar um campo para que apenas notificações com o status 'won' (deals ganhos) sejam processadas. Caso o webhook receba uma notificação sem esse status, ela será descartada e não será processada pela Pluga. Cada campo deve ter os seguintes:
+            - `key`: Um identificador único para o campo (por exemplo, "pipeline"). É possível utilizar **<a href="https://en.wikipedia.org/wiki/Dot_notation" target="_blank" rel="noopener noreferrer">dot notation</a>** para representar estruturas aninhadas, como <code>"deal.pipeline"</code>.
+            - `name`: Um objeto contendo os nomes localizados do campo. (por exemplo, "pt_BR: Funil", "en: Pipeline").
+            - `description`: Um objeto contendo a descrição localizada sobre o campo, voltado para tirar dúvidas, ou indicar um padrão de envio de dados pelos clientes.
+            - `required`: Um indicador se o campo é obrigatório.
+            - `type`: O tipo do campo de configuração pode ser "dropdown" ou "dropdown_multiple". No caso de poder selecionar mais de uma opção deve ser o tipo "dropdown_multiple". O valor padrão é "dropdown" caso o atributo não seja enviado.
+            - `options`: Usado quando o campo possui uma lista estática de opções. Deve ser um array de objetos com a seguinte estrutura:
+              - `label`: Um objeto contendo o nome localizado da opção.
+              - `value`: O valor a ser enviado para sua API.
+            - `helper_id`: Necessário quando as opções do campo devem ser buscadas dinamicamente na sua API. Deve conter o ID do endpoint que fornece as opções (por exemplo, "pipelines_list").
+            - `depends_on`: Um array de chaves de campos anteriores, indicando dependências se as opções do campo dependem do valor de outro campo.
+          - `unique_keys`: Um array de strings representando os campos que devem ser únicos para evitar duplicações. Por exemplo, se o campo "id" for único, deve ser incluído neste array.
+          - `webhook_configuration`: Um objeto contendo a configuração do webhook. Deve incluir:
+            - `message_type`: O tipo de dado que será notificado na URL do webhook, pode ser "object", no caso de ser enviado apenas um objeto na notificação, ou "list", caso seja enviado um array de objetos por notificação.
+            - `message_filters`: Um array de objeto contendo atributos do objeto notificado para verificar se a notificação é válida ou o evento deve ser fitlrado. ele contém as seguintes propriedades:
+              - `field`: O campo do objeto que será verificado (por exemplo, "status").
+              - `events`: Um array de strings representando os eventos que devem ser filtrados (por exemplo, "created", "updated").
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/triggerConfigExample"
+
+    Unauthorized:
+      description: 'Unauthorized'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string, example: "Unauthorized" }
+
+    BadRequest:
+      description: 'Bad Request'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string, example: "Invalid request with information that helps to identify what's wrong" }
+
+    NotFound:
+      description: 'Not Found'
+
+  schemas:
+    pingResponse:
+      type: object
+      properties:
+        name: { type: string }
+        email: { type: string, format: email }
+        scopes:
+          type: array
+          items:
+            type: string
+
+    postRequestExample:
+      type: object
+      properties:
+        name: { type: string, example: "person name" }
+        email: { type: string }
+        value: { type: number, format: float, example: 100.17 }
+
+    postResponseExample:
+      type: object
+      properties:
+        id: { type: string }
+        status: { type: string }
+
+    appConfigResponse:
+      type: object
+      properties:
+        version: { type: string, example: 1.0.0 }
+        name: { type: string, example: Pluga }
+        color: { type: string, example: "#000000" }
+        description:
+          type: object
+          properties:
+            pt_BR: { type: string, example: Uma breve descrição }
+            en: { type: string, example: A brief description }
+        website: { type: string, example: https://example.com }
+        signup_url: { type: string, example: https://example.com/signup }
+        base_url: { type: string, example: https://api.example.com/v1 }
+        authentication:
+          type: object
+          properties:
+            access_token_label:
+              type: object
+              properties:
+                pt_BR: { type: string, example: Token de acesso da API }
+                en: { type: string, example: API Access token }
+            access_token_tutorial:
+              type: array
+              items:
+                $ref: "#/components/schemas/tutorialExample"
+            webhook_tutorial:
+              type: object
+              properties:
+                webhook_page_url:
+                  type: object
+                  properties:
+                    link: { type: string, example: https://example.com/webhook }
+                    label:
+                      type: object
+                      properties:
+                        pt_BR: { type: string, example: Configurar Webhook }
+                        en: { type: string, example: Configure Webhook }
+                tutorial:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/tutorialExample"
+
+    tutorialExample:
+      type: object
+      properties:
+        content:
+          type: object
+          properties:
+            pt_BR: { type: string }
+            en: { type: string }
+        img_url:
+          type: object
+          properties:
+            pt_BR: { type: string }
+            en: { type: string }
+
+    actionConfigExample:
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            pt_BR: { type: string }
+            en: { type: string }
+        task_name:
+          type: object
+          properties:
+            pt_BR: { type: string }
+            en: { type: string }
+        configuration_fields:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/staticConfigField'
+              - $ref: '#/components/schemas/dynamicConfigField'
+    
+    triggerConfigExample:
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            pt_BR: { type: string }
+            en: { type: string }
+        task_name:
+          type: object
+          properties:
+            pt_BR: { type: string }
+            en: { type: string }
+        configuration_fields:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/staticConfigField'
+              - $ref: '#/components/schemas/dynamicConfigField'
+        unique_keys:
+          type: array
+          items:
+            type: string
+            example: id
+        type:
+          type: string
+          enum: [webhook, rest_hook]
+          example: webhook
+          description: Tipo do Trigger. Use 'webhook' quando a Pluga fornecer a URL, ou 'rest_hook' quando sua API gerenciar as assinaturas.
+        webhook_configuration:
+          type: object
+          properties:
+            message_type:
+              type: string
+              example: object | list
+            message_filters:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string, example: status }
+                  events: { type: array, items: { type: string, example: created } }
+
+    staticConfigField:
+      type: object
+      description: 'Field description'
+      properties:
+        key: { type: string, example: pipeline }
+        name:
+          type: object
+          properties:
+            pt_BR: { type: string, example: Funil }
+            en: { type: string, example: Pipeline }
+        description:
+          type: object
+          properties:
+            pt_BR: { type: string, example: 'Escolha o funil onde o deal será criado' }
+            en: { type: string, example: 'Choose the pipeline where the deal will be created' }
+        required: { type: boolean }
+        options:
+          type: array
+          description: 'should be used when options are a static list'
+          items:
+            type: object
+            properties:
+              label:
+                type: object
+                properties:
+                  pt_BR: { type: string, example: Funil Padrão }
+                  en: { type: string, example: Default Pipeline }
+              value: { type: string, example: default }
+      required: [key, name, options]
+
+    dynamicConfigField:
+      type: object
+      description: 'Field description'
+      properties:
+        key: { type: string, example: stage }
+        name:
+          type: object
+          properties:
+            pt_BR: { type: string, example: Etapa do funil }
+            en: { type: string, example: Pipeline Stage }
+        description:
+          type: object
+          properties:
+            pt_BR: { type: string, example: 'Escolha a etapa do funil onde o deal será criado' }
+            en: { type: string, example: 'Choose the pipeline stage where the deal will be created' }
+        required: { type: boolean }
+        helper_id: {
+          type: string,
+          example: stages_list,
+          description: 'should be used when options should be requested from API'
+          }
+        depends_on:
+          type: array
+          description: "should be used when a field depends on another field's value"
+          items:
+            type: string
+            example: pipeline
+      required: [key, name, helper_id]
+
+# Action Fields Example
+    defaultField:
+      type: object
+      properties:
+        key: { type: string, example: name }
+        name:
+          type: object
+          properties:
+            pt_BR: { type: string, example: Nome }
+            en: { type: string, example: Name }
+        description:
+          type: object
+          properties:
+            pt_BR: { type: string, example: 'Nome' }
+            en: { type: string, example: 'Name' }
+        required: { type: boolean }
+        type: { type: string, example: 'integer | decimal | string | datetime | textarea' }
+      required: [key, name, type, required]
+
+    staticDropdownField:
+      allOf:
+        - $ref: '#/components/schemas/staticConfigField'
+        - type: object
+          properties:
+            type: { type: string, example: 'dropdown | dropdown_multiple' }
+          required: [key, name, type, options]
+
+    dinamicDropdownField:
+      allOf:
+        - $ref: '#/components/schemas/dynamicConfigField'
+        - type: object
+          properties:
+            type: { type: string, example: 'dropdown | dropdown_multiple' }
+          required: [key, name, type, helper_id]

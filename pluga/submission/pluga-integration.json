@@ -1,0 +1,19 @@
+{
+  "app": {
+    "id": "perpetuus",
+    "base_url": "https://pluga.services.perpetuus.com.br"
+  },
+  "actions": [
+    { "id": "create_card" },
+    { "id": "move_card" },
+    { "id": "add_card_tags" },
+    { "id": "upsert_contact" },
+    { "id": "create_task" }
+  ],
+  "triggers": [
+    { "id": "card_created" },
+    { "id": "card_entered_phase" },
+    { "id": "contact_created" },
+    { "id": "message_received" }
+  ]
+}
