@@ -14,5 +14,11 @@
         "data": {
             "externalHookId": "{{body.data.id}}"
         }
+    },
+    "log": {
+        "sanitize": [
+            "request.headers.authorization",
+            "response.body.data.secret"
+        ]
     }
 }

@@ -17,7 +17,7 @@
                 "message": "[402] Your Perpetuus plan contact limit was reached: {{ifempty(ifempty(body.error.message, body.message), 'upgrade the plan to add more contacts')}}"
             },
             "403": {
-                "message": "[403] {{if(body.error.details.requiredScope || contains(ifempty(body.error.message, ''), 'escopo'), 'The Perpetuus API key is missing the \"' + ifempty(body.error.details.requiredScope, last(split(trim(body.error.message), ' '))) + '\" scope. Create a key with the crm:write scope (it includes crm:read).', 'Perpetuus denied access: ' + ifempty(ifempty(body.error.message, body.message), 'forbidden'))}}"
+                "message": "[403] {{if(contains(replace(ifempty(ifempty(body.error.message, body.message), ''), 'escopo ', 'scope '), 'scope '), 'The Perpetuus API key is missing the \"' + first(split(last(split(replace(ifempty(ifempty(body.error.message, body.message), ''), 'escopo ', 'scope '), 'scope ')), ' for ')) + '\" scope. Create a key that includes it (crm:write includes crm:read; chat:write includes chat:read).', 'Perpetuus denied access: ' + ifempty(ifempty(body.error.message, body.message), 'forbidden'))}}"
             },
             "404": {
                 "message": "[404] Not found in Perpetuus: {{ifempty(ifempty(body.error.message, body.message), 'resource not found')}}"

@@ -111,7 +111,8 @@ are unchanged and remain available (Task Completed is polling only).
 ## Connection
 
 - **API key** (`apiKey`, password, required): a Perpetuus key `ppt_…` with `crm:write` (it includes
-  `crm:read`). In Perpetuus: **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar
+  `crm:read`). "Watch new messages" also needs `chat:read` (or `chat:write`); the help of the
+  field says so. In Perpetuus: **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar
   editor → Conectar novo editor**.
 - The API address is fixed (`https://api.perpetuus.com.br/api`) in the Base and the connection; it
   is not a connection parameter, so a stored key can only be sent to Perpetuus.
@@ -149,7 +150,7 @@ messages, prefixed with the HTTP status as Make recommends:
 | 400 | `DataError` (can be stored as an incomplete execution) | `Perpetuus rejected the request: …` + details |
 | 401 | `InvalidAccessTokenError` (scenario stops, user notified) | `Invalid or expired Perpetuus API key…` |
 | 402 | `RuntimeError` | `Your Perpetuus plan contact limit was reached: …` |
-| 403 | `RuntimeError` | missing scope (`The Perpetuus API key is missing the "crm:write" scope…`) or `Perpetuus denied access: …` |
+| 403 | `RuntimeError` | missing scope, named from the API message (`PAT sem escopo chat:read`, `API key lacks scope chat:read for these events`): `The Perpetuus API key is missing the "chat:read" scope…`; otherwise `Perpetuus denied access: …` |
 | 404 | `RuntimeError` | `Not found in Perpetuus: …` |
 | 429 | `RateLimitError` (Make pauses the scenario and retries) | `Perpetuus rate limit reached (120 requests/min per key). Try again in N seconds.` |
 | 5xx on reads | `ConnectionError` (Make retries later) | `Perpetuus server error (HTTP N). Try again later.` |
@@ -203,7 +204,9 @@ local app into an empty app.
 1. In Make, create a Make API token with the `sdk-apps:read` and `sdk-apps:write` scopes
    (**Profile → API access**), in the zone of your organization (for example `eu2.make.com`).
 2. In Make, **Custom apps → Create a new app**: name `perpetuus-crm` (or the free name you get),
-   label `Perpetuus CRM`, the brand color as theme and the logo (512×512 PNG). The app stays empty and private.
+   label `Perpetuus CRM`, the brand color as theme and the logo
+   ([`assets/logo-512.png`](assets/logo-512.png): 512×512 PNG, only the mark in black on a transparent
+   background, because Make draws every logo in white on the theme color). The app stays empty and private.
 3. Open this repository in VS Code with the extension installed and the environment configured.
 4. Right-click `make/app/makecomapp.json` → **Deploy to Make** → **Deploy into another app**. The
    extension adds an origin; replace the `-FILL-ME-` values:
@@ -265,6 +268,8 @@ deploy:
 From [Make's app review prerequisites](https://developers.make.com/custom-apps-documentation/app-review/prerequisites):
 
 - [x] Base and connection sanitize the API key (`request.headers.authorization`).
+- [x] The Attach request of each webhook also sanitizes the signing secret (`response.body.data.secret`).
+- [x] The four webhooks use the Perpetuus CRM connection, so Attach and Detach send the API key.
 - [x] Base and connection handle errors with clear messages and the right error types.
 - [x] Base and connection use the production API (`https://api.perpetuus.com.br/api`); the
       connection validates the key on `/auth/token-info` and a wrong key fails.

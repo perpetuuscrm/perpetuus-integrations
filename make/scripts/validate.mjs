@@ -354,6 +354,7 @@ for (const [id, meta] of Object.entries(webhooks)) {
   if (attach.body?.origin !== 'make') fail(where, 'attach must send origin "make"');
   if (!Array.isArray(attach.body?.events) || !attach.body.events.length) fail(where, 'attach must send the events');
   if (attach.response?.data?.externalHookId !== '{{body.data.id}}') fail(where, 'attach must keep response.data.externalHookId = {{body.data.id}}');
+  for (const key of ['request.headers.authorization', 'response.body.data.secret']) if (!sanitizes(attach).includes(key)) fail(where, `attach log.sanitize must hide ${key}`);
   if (detach.method !== 'DELETE' || detach.url !== '/webhook-subscriptions/{{webhook.externalHookId}}') fail(where, 'detach must DELETE /webhook-subscriptions/{{webhook.externalHookId}}');
   if (!/404/.test(detach.response?.valid ?? '')) fail(where, 'detach must accept 404 (subscription already gone)');
   if (!/body\.type/.test(comm.condition ?? '')) fail(where, 'communication.condition must filter on body.type (skips ping and other events)');

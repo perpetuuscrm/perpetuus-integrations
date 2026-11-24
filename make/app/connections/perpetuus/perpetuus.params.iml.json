@@ -5,6 +5,6 @@
         "label": "API key",
         "required": true,
         "editable": true,
-        "help": "Your Perpetuus API key, starting with `ppt_`. In Perpetuus, go to **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar editor → Conectar novo editor**, choose the validity and the `crm:write` scope (it includes `crm:read`). The key is shown only once."
+        "help": "Your Perpetuus API key, starting with `ppt_`. In Perpetuus, go to **Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar editor → Conectar novo editor**, choose the validity and the `crm:write` scope (it includes `crm:read`). \"Watch new messages\" also needs the `chat:read` scope (or `chat:write`, which includes it), so select it too if you use that trigger. The key is shown only once."
     }
 ]
