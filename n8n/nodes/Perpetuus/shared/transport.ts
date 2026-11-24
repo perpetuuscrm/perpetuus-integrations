@@ -116,7 +116,7 @@ export function toPerpetuusError(
 			);
 		case 401:
 			return new PerpetuusApiError(
-				'Invalid or expired Perpetuus API key. Create a new key in Settings → API Tokens e MCP and update the credential.',
+				'Invalid or expired Perpetuus API key. Create a new key in Settings → API Tokens and MCP ("API Tokens e MCP") → Connect your AI (MCP) → Connect editor → Connect new editor and update the credential.',
 				{ httpCode: 401, description: apiMessage },
 			);
 		case 402:

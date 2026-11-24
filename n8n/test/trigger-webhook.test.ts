@@ -227,6 +227,28 @@ describe('Perpetuus Trigger v2 webhook', () => {
 		expect(response.statusCode).toBe(401);
 	});
 
+	it('rejects an unsigned delivery with 401 even with a stored secret', async () => {
+		const { ctx, response } = context({
+			params: { event: 'newContact' },
+			staticData: { webhookId: 'sub1', webhookSecret: secret },
+			request: { body: delivery, rawBody },
+		});
+		expect(await node.webhook.call(ctx)).toEqual({ noWebhookResponse: true });
+		expect(response.statusCode).toBe(401);
+	});
+
+	it('rejects every delivery with 401 when no signing secret is stored', async () => {
+		for (const headers of [undefined, signed(rawBody)]) {
+			const { ctx, response } = context({
+				params: { event: 'newContact' },
+				staticData: { webhookId: 'sub1' },
+				request: { body: delivery, rawBody, headers },
+			});
+			expect(await node.webhook.call(ctx)).toEqual({ noWebhookResponse: true });
+			expect(response.statusCode).toBe(401);
+		}
+	});
+
 	it('acknowledges pings and other phases without starting the workflow', async () => {
 		const ping = JSON.stringify({ id: 'evt_2', type: 'ping', data: { test: true } });
 		const { ctx } = context({
@@ -235,5 +257,19 @@ describe('Perpetuus Trigger v2 webhook', () => {
 			request: { body: JSON.parse(ping), rawBody: ping, headers: signed(ping) },
 		});
 		expect(await node.webhook.call(ctx)).toEqual({ webhookResponse: 'OK' });
+	});
+});
+
+describe('Perpetuus Trigger v2 create without a secret', () => {
+	it('deletes the subscription and fails when Perpetuus returns no signing secret', async () => {
+		const { ctx, calls } = context({
+			params: { event: 'newContact' },
+			handler: (call) =>
+				call.method === 'POST'
+					? { statusCode: 201, body: { data: { id: 'sub9', events: ['contact.created'] } } }
+					: { statusCode: 204 },
+		});
+		await expect(node.webhookMethods.default.create.call(ctx)).rejects.toThrow(/signing secret/);
+		expect(calls.map((c) => c.method)).toEqual(['POST', 'DELETE']);
 	});
 });

@@ -180,6 +180,14 @@ export class PerpetuusTriggerV2 implements INodeType {
 						origin: 'n8n',
 						description: `n8n${workflowName ? `: ${workflowName}` : ''} (${event})`,
 					});
+					if (!subscription.secret) {
+						// Without the signing secret no delivery could be verified: do not keep it.
+						await unsubscribe(client, subscription.id).catch(() => undefined);
+						throw new NodeOperationError(
+							this.getNode(),
+							'Perpetuus did not return the webhook signing secret.',
+						);
+					}
 					const state = this.getWorkflowStaticData('node') as WebhookState;
 					state.webhookId = subscription.id;
 					state.webhookSecret = subscription.secret;
@@ -214,19 +222,23 @@ export class PerpetuusTriggerV2 implements INodeType {
 		const body = this.getBodyData();
 		const state = this.getWorkflowStaticData('node') as WebhookState;
 
-		if (state.webhookSecret) {
-			const rawBody = request.rawBody ? request.rawBody.toString('utf8') : JSON.stringify(body);
-			const check = verifySignature(
-				state.webhookSecret,
-				this.getHeaderData() as IDataObject,
-				rawBody,
-			);
-			if (!check.ok) {
-				this.getResponseObject()
-					.status(401)
-					.json({ error: `Invalid Perpetuus signature: ${check.reason}` });
-				return { noWebhookResponse: true };
-			}
+		// Every Perpetuus delivery is signed with the subscription secret. Without a stored secret
+		// (or with an invalid signature) the request is rejected and the workflow does not start.
+		const check = state.webhookSecret
+			? verifySignature(
+					state.webhookSecret,
+					this.getHeaderData() as IDataObject,
+					request.rawBody ? request.rawBody.toString('utf8') : JSON.stringify(body),
+				)
+			: ({
+					ok: false,
+					reason: 'no signing secret stored; deactivate and reactivate the workflow',
+				} as const);
+		if (!check.ok) {
+			this.getResponseObject()
+				.status(401)
+				.json({ error: `Invalid Perpetuus signature: ${check.reason}` });
+			return { noWebhookResponse: true };
 		}
 
 		const envelope = parseEnvelope(body);

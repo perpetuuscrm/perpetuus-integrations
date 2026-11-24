@@ -25,7 +25,7 @@ export class PerpetuusApi implements ICredentialType {
 			default: '',
 			placeholder: 'ppt_...',
 			description:
-				'Perpetuus API key (starts with ppt_). Create it in Settings → API Tokens e MCP → Conectar sua IA (MCP) → Conectar novo editor, with the crm:write scope.',
+				'Perpetuus API key (starts with ppt_). Create it in Settings → API Tokens and MCP ("API Tokens e MCP") → Connect your AI (MCP) → Connect editor → Connect new editor, with the crm:write scope.',
 		},
 		{
 			displayName: 'Base URL',

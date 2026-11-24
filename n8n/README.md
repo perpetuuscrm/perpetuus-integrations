@@ -35,14 +35,12 @@ For self-hosted n8n with npm: `npm install n8n-nodes-perpetuus` in your n8n cust
 
 The nodes use a Perpetuus **API key** (it starts with `ppt_`).
 
-1. In Perpetuus, open **Settings → API Tokens e MCP**.
-2. In the **Conectar sua IA (MCP)** card, select **Conectar editor**, then
-   **Conectar novo editor**.
-3. Name the key (for example `n8n`), choose how many days it is valid (1 to 365) and select
+1. In Perpetuus, go to **Settings → API Tokens and MCP ("API Tokens e MCP") → Connect your AI (MCP) → Connect editor → Connect new editor**.
+2. Name the key (for example `n8n`), choose how many days it is valid (1 to 365) and select
    the **crm:write** scope (it includes `crm:read`). The trigger alone only needs `crm:read`.
-4. Select **Gerar configuração** and copy the `ppt_…` key from the `Authorization` field. It
+3. Select **Generate config** and copy the `ppt_…` key from the `Authorization` field. It
    is shown only once.
-5. In n8n, create a **Perpetuus API** credential and paste the key. Keep the base URL
+4. In n8n, create a **Perpetuus API** credential and paste the key. Keep the base URL
    `https://api.perpetuus.com.br/api` unless Perpetuus support tells you otherwise.
 
 The credential test calls `GET /auth/token-info`. The key already belongs to one
