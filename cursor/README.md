@@ -24,7 +24,7 @@ Official [Cursor](https://cursor.com) plugin for [Perpetuus CRM](https://www.per
 2. Open Cursor Settings → MCP (or Customize → Plugins) and enable the `perpetuus` server. It shows up as `plugin-perpetuus-crm-perpetuus`.
 3. Cursor opens the Perpetuus sign-in page. Log in, pick the organization and approve the requested access on the consent screen.
 
-No API key or secret goes in this repository: authentication is OAuth 2.1 with PKCE and dynamic client registration, and the token stays in Cursor. You can revoke access at any time in Perpetuus under **Settings → API Tokens e MCP**.
+No API key or secret goes in this repository: authentication is OAuth 2.1 with PKCE and dynamic client registration, and the token stays in Cursor. You can revoke access at any time in Perpetuus under **Settings → API Tokens and MCP** ("API Tokens e MCP" in the Portuguese interface).
 
 ## Usage examples
 
@@ -43,9 +43,9 @@ No API key or secret goes in this repository: authentication is OAuth 2.1 with P
 ## Support
 
 - Documentation: https://docs.perpetuus.com.br
-- Email: contato@perpetuus.com.br
+- Email: luis.santos@perpetuus.com.br
 - Privacy policy: https://www.perpetuus.com.br/privacy · Terms: https://www.perpetuus.com.br/terms
-- Security issues: report to contato@perpetuus.com.br with "security" in the subject.
+- Security issues: report to luis.santos@perpetuus.com.br with "security" in the subject.
 
 ## License
 

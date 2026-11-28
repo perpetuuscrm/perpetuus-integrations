@@ -4,7 +4,7 @@
   "description": "Work in Perpetuus CRM from Cursor: review Boards and Phases, search and open Cards, move Cards between Phases, find contacts and their history, and create tasks and comments, through the official Perpetuus MCP server with OAuth.",
   "author": {
     "name": "Perpetuus",
-    "email": "contato@perpetuus.com.br"
+    "email": "luis.santos@perpetuus.com.br"
   },
   "homepage": "https://www.perpetuus.com.br/en",
   "repository": "https://github.com/perpetuuscrm/perpetuus-integrations",
